@@ -3192,7 +3192,7 @@ class RedRibbonSoldier extends Enemy {
 
 class BattleRobot extends Enemy {
   constructor(x, y) {
-    super(x, y, 24, 24, 40, 70, 100);
+    super(x, y, 32, 32, 40, 70, 100);
     this.baseY = y; this.sineOffset = Math.random() * Math.PI * 2;
     this.shootTimer = 1.5 + Math.random();
   }
@@ -3203,28 +3203,42 @@ class BattleRobot extends Enemy {
     this.shootTimer -= dt;
     if (this.shootTimer <= 0) {
       this.shootTimer = 2;
-      enemyProjectiles.push(new EnemyProjectile(this.x + 12, this.y + 24, 0, 70, '#88DDFF', 4, 10));
+      enemyProjectiles.push(new EnemyProjectile(this.x + 16, this.y + 32, 0, 70, '#88DDFF', 4, 10));
     }
     if (this.x < -40) this.alive = false;
   }
   draw(ctx) {
-    ctx.fillStyle = this.flashTimer > 0 ? '#FFF' : COLORS.rrRobotGray;
-    ctx.fillRect(this.x, this.y, 24, 20);
-    ctx.fillStyle = this.flashTimer > 0 ? '#FFF' : COLORS.rrRobotDark;
-    ctx.fillRect(this.x + 2, this.y + 2, 20, 8);
-    ctx.fillStyle = COLORS.rrRobotRed;
-    ctx.fillRect(this.x + 6, this.y + 3, 4, 4);
-    ctx.fillRect(this.x + 14, this.y + 3, 4, 4);
-    ctx.fillStyle = COLORS.rrRobotDark;
-    ctx.fillRect(this.x + 4, this.y + 20, 6, 4);
-    ctx.fillRect(this.x + 14, this.y + 20, 6, 4);
+    var fc = this.flashTimer > 0 ? '#FFF' : null;
+    var cx = this.x + 16; var cy = this.y + 16;
+    // Donut body (outer ring)
+    ctx.fillStyle = fc || '#FFAA77';
+    ctx.beginPath(); ctx.arc(cx, cy, 15, 0, Math.PI * 2); ctx.fill();
+    // Donut hole
+    ctx.fillStyle = '#FFD4E8';
+    ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
+    // Pink glaze on top
+    ctx.fillStyle = fc || '#FF88BB';
+    ctx.beginPath(); ctx.arc(cx, cy - 2, 13, Math.PI, Math.PI * 2); ctx.fill();
+    // Sprinkles
+    ctx.fillStyle = '#FF4444'; ctx.fillRect(cx - 8, cy - 8, 3, 2);
+    ctx.fillStyle = '#44FF44'; ctx.fillRect(cx + 3, cy - 10, 3, 2);
+    ctx.fillStyle = '#4444FF'; ctx.fillRect(cx - 5, cy - 11, 2, 3);
+    ctx.fillStyle = '#FFFF44'; ctx.fillRect(cx + 6, cy - 7, 2, 3);
+    ctx.fillStyle = '#FF44FF'; ctx.fillRect(cx - 1, cy - 12, 3, 2);
+    // Cute eyes on the donut
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(cx - 4, cy + 2, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 4, cy + 2, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.arc(cx - 4, cy + 2, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 4, cy + 2, 1.5, 0, Math.PI * 2); ctx.fill();
     this.drawHealthBar(ctx);
   }
 }
 
 class NinjaAssassin extends Enemy {
   constructor(x, y) {
-    super(x, y, 18, 26, 15, 160, 75);
+    super(x, y, 26, 34, 15, 160, 75);
     this.attackCooldown = 0;
   }
   update(dt) {
@@ -3240,12 +3254,29 @@ class NinjaAssassin extends Enemy {
     if (this.x < -40) this.alive = false;
   }
   draw(ctx) {
-    ctx.fillStyle = this.flashTimer > 0 ? '#FFF' : COLORS.rrNinjaPurple;
-    ctx.fillRect(this.x + 3, this.y + 8, 12, 18);
-    ctx.fillStyle = this.flashTimer > 0 ? '#FFF' : COLORS.rrNinjaDark;
-    ctx.fillRect(this.x + 2, this.y, 14, 10);
-    ctx.fillStyle = '#FF0000';
-    ctx.fillRect(this.x + 4, this.y + 4, 10, 2);
+    var fc = this.flashTimer > 0 ? '#FFF' : null;
+    // Jellybean body (oval)
+    ctx.fillStyle = fc || '#FF6688';
+    ctx.beginPath(); ctx.ellipse(this.x + 13, this.y + 17, 12, 16, 0, 0, Math.PI * 2); ctx.fill();
+    // Shine highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.beginPath(); ctx.ellipse(this.x + 9, this.y + 11, 4, 7, -0.3, 0, Math.PI * 2); ctx.fill();
+    // Cute eyes (white)
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(this.x + 9, this.y + 14, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(this.x + 17, this.y + 14, 3, 0, Math.PI * 2); ctx.fill();
+    // Black pupils
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.arc(this.x + 10, this.y + 14, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(this.x + 18, this.y + 14, 1.5, 0, Math.PI * 2); ctx.fill();
+    // Little smile
+    ctx.strokeStyle = '#CC3355';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(this.x + 13, this.y + 18, 4, 0.2, Math.PI - 0.2); ctx.stroke();
+    // Little feet
+    ctx.fillStyle = fc || '#FF6688';
+    ctx.beginPath(); ctx.ellipse(this.x + 8, this.y + 31, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(this.x + 18, this.y + 31, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
     this.drawHealthBar(ctx);
   }
 }
