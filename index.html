@@ -1650,27 +1650,24 @@ class KiBlast {
     const sx = this.x - camera.x;
     const sy = this.y;
 
-    // Outer glow
     ctx.save();
-    ctx.globalAlpha = 0.35;
-    ctx.fillStyle = '#ffff00';
+    // Brown circle (cookie base)
+    ctx.fillStyle = '#CC8844';
     ctx.beginPath();
-    ctx.arc(sx, sy, 10, 0, Math.PI * 2);
+    ctx.arc(sx + 4, sy + 4, 6, 0, Math.PI * 2);
     ctx.fill();
 
-    // Mid glow
-    ctx.globalAlpha = 0.6;
-    ctx.fillStyle = '#ffee44';
+    // Darker edge
+    ctx.fillStyle = '#AA6633';
     ctx.beginPath();
-    ctx.arc(sx, sy, 6, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.arc(sx + 4, sy + 4, 6, 0, Math.PI * 2);
+    ctx.stroke();
 
-    // Core
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = '#ffffcc';
-    ctx.beginPath();
-    ctx.arc(sx, sy, 4, 0, Math.PI * 2);
-    ctx.fill();
+    // Chocolate chips (3 small dark dots)
+    ctx.fillStyle = '#553311';
+    ctx.fillRect(sx + 1, sy + 2, 2, 2);
+    ctx.fillRect(sx + 5, sy + 5, 2, 2);
+    ctx.fillRect(sx + 3, sy + 7, 2, 2);
     ctx.restore();
   }
 }
@@ -1717,7 +1714,7 @@ class KamehamehaBeam {
       spawnParticles(
         rx, ry,
         1,
-        { r: 100, g: 180, b: 255 },
+        { r: 255, g: 136, b: 204 },
         2,
         0.8,
         0.3,
@@ -1740,18 +1737,17 @@ class KamehamehaBeam {
       ctx.globalAlpha = Math.max(0, 1 - (this.age - fadeStart) / 0.3);
     }
 
-    // Outer glow
-    ctx.fillStyle = 'rgba(80, 160, 255, 0.25)';
+    // Outer glow (pink candy glow)
+    ctx.fillStyle = 'rgba(255, 136, 204, 0.25)';
     ctx.fillRect(sx, sy - this.width * 0.75, beamLen, this.width * 1.5);
 
-    // Main beam (blue)
-    ctx.fillStyle = '#4488ff';
-    ctx.fillRect(sx, sy - this.width / 2, beamLen, this.width);
-
-    // Inner beam (lighter blue)
-    ctx.fillStyle = '#88bbff';
-    const innerW = this.width * 0.5;
-    ctx.fillRect(sx, sy - innerW / 2, beamLen, innerW);
+    // Rainbow candy stripes
+    const stripeColors = ['#FF6688', '#FFAA44', '#FFEE44', '#66DD88', '#66AAFF'];
+    const stripeH = this.width / stripeColors.length;
+    for (let i = 0; i < stripeColors.length; i++) {
+      ctx.fillStyle = stripeColors[i];
+      ctx.fillRect(sx, sy - this.width / 2 + stripeH * i, beamLen, stripeH);
+    }
 
     // White core
     ctx.fillStyle = '#ffffff';
@@ -1761,8 +1757,8 @@ class KamehamehaBeam {
     // Origin flare (circle at hand position)
     const gradient = ctx.createRadialGradient(sx, sy, 0, sx, sy, this.width);
     gradient.addColorStop(0, 'rgba(255,255,255,0.9)');
-    gradient.addColorStop(0.4, 'rgba(100,180,255,0.5)');
-    gradient.addColorStop(1, 'rgba(50,100,255,0)');
+    gradient.addColorStop(0.4, 'rgba(255,136,204,0.5)');
+    gradient.addColorStop(1, 'rgba(255,100,180,0)');
     ctx.fillStyle = gradient;
     ctx.beginPath();
     ctx.arc(sx, sy, this.width, 0, Math.PI * 2);
@@ -1925,10 +1921,10 @@ class Player {
     this.y = CANVAS_H / 2;
     this.vx = 0;
     this.vy = 0;
-    this.w = 32;             // Goku sprite width
-    this.h = 40;             // Goku sprite height
-    this.cloudW = 40;        // nimbus cloud width
-    this.cloudH = 16;        // nimbus cloud height
+    this.w = 48;             // Goku sprite width
+    this.h = 56;             // Goku sprite height
+    this.cloudW = 56;        // nimbus cloud width
+    this.cloudH = 22;        // nimbus cloud height
     this.moveSpeed = 200;    // pixels per second
 
     // Stats
@@ -1982,7 +1978,7 @@ class Player {
 
     // Cloud bobbing
     this.bobTime = 0;
-    this.bobAmplitude = 3;
+    this.bobAmplitude = 5;
     this.bobSpeed = 3;
 
     // Aura particles
@@ -2976,7 +2972,7 @@ let enemyProjectiles = [];
 class PowerUp {
   constructor(x, y, type) {
     this.x = x; this.y = y; this.type = type;
-    this.w = 16; this.h = 16; this.alive = true;
+    this.w = 24; this.h = 24; this.alive = true;
     this.bobTimer = Math.random() * Math.PI * 2;
     this.vy = 18;
   }
@@ -2991,36 +2987,66 @@ class PowerUp {
     ctx.save();
     switch(this.type) {
       case 'senzu':
-        ctx.fillStyle = COLORS.senzuGreen;
-        ctx.fillRect(this.x + 5, this.y - 2 + Math.sin(this.bobTimer)*4, 6, 14);
-        ctx.fillStyle = COLORS.senzuGreenLight;
-        ctx.fillRect(this.x + 6, this.y - 1 + Math.sin(this.bobTimer)*4, 4, 12);
+        // cupcake wrapper (brown)
+        ctx.fillStyle = '#AA7744';
+        ctx.fillRect(this.x + 4, drawY + 12, 16, 10);
+        // cake top (pink frosting)
+        ctx.fillStyle = '#FF88AA';
+        ctx.beginPath(); ctx.arc(this.x + 12, drawY + 10, 10, Math.PI, 0); ctx.fill();
+        // frosting swirl
+        ctx.fillStyle = '#FFAACC';
+        ctx.beginPath(); ctx.arc(this.x + 12, drawY + 8, 6, Math.PI, 0); ctx.fill();
+        // cherry on top
+        ctx.fillStyle = '#FF4466';
+        ctx.beginPath(); ctx.arc(this.x + 12, drawY + 2, 3, 0, Math.PI * 2); ctx.fill();
         break;
       case 'ki':
-        ctx.fillStyle = COLORS.kiOrbGlow;
-        ctx.globalAlpha = 0.4;
-        ctx.beginPath(); ctx.arc(this.x + 8, drawY + 8, 12, 0, Math.PI * 2); ctx.fill();
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = COLORS.kiOrbBlue;
-        ctx.beginPath(); ctx.arc(this.x + 8, drawY + 8, 7, 0, Math.PI * 2); ctx.fill();
+        // candy cane stick
         ctx.fillStyle = '#FFFFFF';
-        ctx.beginPath(); ctx.arc(this.x + 6, drawY + 6, 2, 0, Math.PI * 2); ctx.fill();
+        ctx.fillRect(this.x + 10, drawY + 4, 4, 16);
+        // red stripes
+        ctx.fillStyle = '#FF4444';
+        ctx.fillRect(this.x + 10, drawY + 6, 4, 3);
+        ctx.fillRect(this.x + 10, drawY + 12, 4, 3);
+        // hook top
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath(); ctx.arc(this.x + 14, drawY + 4, 4, Math.PI, 0); ctx.fill();
+        ctx.fillStyle = '#FF4444';
+        ctx.beginPath(); ctx.arc(this.x + 14, drawY + 4, 4, Math.PI, Math.PI*1.5); ctx.fill();
         break;
       case 'dragonball':
-        ctx.fillStyle = COLORS.dragonBallOrange;
-        ctx.beginPath(); ctx.arc(this.x + 8, drawY + 8, 8, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = COLORS.dragonBallStar;
-        ctx.beginPath(); ctx.arc(this.x + 8, drawY + 8, 2, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#FFCC66';
-        ctx.beginPath(); ctx.arc(this.x + 5, drawY + 5, 2, 0, Math.PI * 2); ctx.fill();
+        // golden cookie circle
+        ctx.fillStyle = '#FFD700';
+        ctx.beginPath(); ctx.arc(this.x + 12, drawY + 12, 10, 0, Math.PI * 2); ctx.fill();
+        // darker edge
+        ctx.strokeStyle = '#CC9900';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        // star shape in center
+        ctx.fillStyle = '#FFAA00';
+        ctx.beginPath();
+        for(var s=0; s<5; s++) {
+          var a = s * Math.PI * 2/5 - Math.PI/2;
+          var r = s===0 ? 0 : 6;
+          if(s===0) ctx.moveTo(this.x+12+Math.cos(a)*6, drawY+12+Math.sin(a)*6);
+          else ctx.lineTo(this.x+12+Math.cos(a)*6, drawY+12+Math.sin(a)*6);
+          var a2 = a + Math.PI/5;
+          ctx.lineTo(this.x+12+Math.cos(a2)*3, drawY+12+Math.sin(a2)*3);
+        }
+        ctx.closePath(); ctx.fill();
+        ctx.lineWidth = 1;
         break;
       case 'speed':
-        ctx.fillStyle = COLORS.speedBoostYellow;
-        ctx.beginPath();
-        ctx.moveTo(this.x + 10, drawY); ctx.lineTo(this.x + 4, drawY + 9);
-        ctx.lineTo(this.x + 9, drawY + 9); ctx.lineTo(this.x + 6, drawY + 16);
-        ctx.lineTo(this.x + 14, drawY + 6); ctx.lineTo(this.x + 10, drawY + 6);
-        ctx.closePath(); ctx.fill();
+        // cotton candy fluffy shape
+        ctx.fillStyle = '#FFAADD';
+        ctx.beginPath(); ctx.arc(this.x + 12, drawY + 6, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#AADDFF';
+        ctx.beginPath(); ctx.arc(this.x + 10, drawY + 10, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#FFCCEE';
+        ctx.beginPath(); ctx.arc(this.x + 14, drawY + 9, 5, 0, Math.PI * 2); ctx.fill();
+        // stick
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(this.x + 11, drawY + 14, 3, 10);
         break;
     }
     ctx.restore();
