@@ -2987,14 +2987,19 @@ class EnemyProjectile {
   }
   draw(ctx) {
     ctx.save();
-    ctx.globalAlpha = 0.5;
+    // gumdrop shape
     ctx.fillStyle = this.color;
-    ctx.beginPath(); ctx.arc(this.x, this.y, this.size + 2, 0, Math.PI * 2); ctx.fill();
-    ctx.globalAlpha = 1;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+    // shine highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.beginPath();
+    ctx.arc(this.x - this.size*0.25, this.y - this.size*0.25, this.size * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    // sugar sparkle
     ctx.fillStyle = '#FFFFFF';
-    ctx.beginPath(); ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = this.color;
-    ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(this.x + this.size*0.2, this.y - this.size*0.4, 2, 2);
     ctx.restore();
   }
 }
@@ -3134,7 +3139,7 @@ let enemies = [];
 
 class RedRibbonSoldier extends Enemy {
   constructor(x, y) {
-    super(x, y, 20, 28, 20, 50, 50);
+    super(x, y, 28, 36, 20, 50, 50);
     this.shootTimer = 1 + Math.random();
     this.shootInterval = 2;
     this.dir = -1;
@@ -3145,18 +3150,42 @@ class RedRibbonSoldier extends Enemy {
     this.shootTimer -= dt;
     if (this.shootTimer <= 0) {
       this.shootTimer = this.shootInterval;
-      enemyProjectiles.push(new EnemyProjectile(this.x, this.y + 10, -80, 0, '#FFAA00', 3, 8));
+      enemyProjectiles.push(new EnemyProjectile(this.x, this.y + 10, -80, 0, '#FF88CC', 3, 8));
       playSound('kiBlast');
     }
     if (this.x < -40) this.alive = false;
   }
   draw(ctx) {
-    if (this.flashTimer > 0) { ctx.fillStyle = '#FFF'; } else { ctx.fillStyle = COLORS.rrSoldierGreen; }
-    ctx.fillRect(this.x + 4, this.y + 10, 12, 18);
-    ctx.fillStyle = this.flashTimer > 0 ? '#FFF' : COLORS.rrSoldierHelmet;
-    ctx.fillRect(this.x + 3, this.y, 14, 12);
-    ctx.fillStyle = COLORS.gokuSkin;
-    ctx.fillRect(this.x + 5, this.y + 5, 10, 6);
+    var fc = this.flashTimer > 0 ? '#FFF' : null;
+    // Gingerbread body
+    ctx.fillStyle = fc || '#CC8844';
+    ctx.fillRect(this.x + 2, this.y + 8, 16, 22);
+    // Gingerbread head (circle)
+    ctx.fillStyle = fc || '#CC8844';
+    ctx.beginPath(); ctx.arc(this.x + 10, this.y + 5, 9, 0, Math.PI*2); ctx.fill();
+    // Arms
+    ctx.fillStyle = fc || '#CC8844';
+    ctx.fillRect(this.x - 4, this.y + 12, 6, 4);
+    ctx.fillRect(this.x + 18, this.y + 12, 6, 4);
+    // Legs
+    ctx.fillRect(this.x + 2, this.y + 28, 5, 6);
+    ctx.fillRect(this.x + 13, this.y + 28, 5, 6);
+    // White icing buttons
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(this.x + 8, this.y + 13, 4, 3);
+    ctx.fillRect(this.x + 8, this.y + 19, 4, 3);
+    ctx.fillRect(this.x + 8, this.y + 25, 4, 3);
+    // Icing smile
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(this.x + 6, this.y + 7, 8, 2);
+    // Icing eyes
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(this.x + 7, this.y + 3, 2, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(this.x + 13, this.y + 3, 2, 0, Math.PI*2); ctx.fill();
+    // Black pupils
+    ctx.fillStyle = '#000';
+    ctx.fillRect(this.x + 6, this.y + 2, 2, 2);
+    ctx.fillRect(this.x + 12, this.y + 2, 2, 2);
     this.drawHealthBar(ctx);
   }
 }
@@ -3174,7 +3203,7 @@ class BattleRobot extends Enemy {
     this.shootTimer -= dt;
     if (this.shootTimer <= 0) {
       this.shootTimer = 2;
-      enemyProjectiles.push(new EnemyProjectile(this.x + 12, this.y + 24, 0, 70, '#FF4444', 4, 10));
+      enemyProjectiles.push(new EnemyProjectile(this.x + 12, this.y + 24, 0, 70, '#88DDFF', 4, 10));
     }
     if (this.x < -40) this.alive = false;
   }
@@ -3237,7 +3266,7 @@ class FriezaSoldier extends Enemy {
       this.shootTimer = 2 + Math.random();
       var dx = player.x - this.x; var dy = player.y - this.y;
       var dist = Math.sqrt(dx*dx+dy*dy) || 1;
-      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+13, (dx/dist)*100, (dy/dist)*100, '#DD44FF', 4, 12));
+      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+13, (dx/dist)*100, (dy/dist)*100, '#FFCC44', 4, 12));
     }
     if (this.x < -40) this.alive = false;
   }
@@ -3351,7 +3380,7 @@ class CellJunior extends Enemy {
         this.shootTimer = 1;
         var dx = player.x - this.x; var dy = player.y - this.y;
         var dist = Math.sqrt(dx*dx+dy*dy) || 1;
-        enemyProjectiles.push(new EnemyProjectile(this.x, this.y+11, (dx/dist)*110, (dy/dist)*110, '#44FF44', 4, 15));
+        enemyProjectiles.push(new EnemyProjectile(this.x, this.y+11, (dx/dist)*110, (dy/dist)*110, '#88FF88', 4, 15));
       }
     }
     if (this.x < -40) this.alive = false;
@@ -3387,9 +3416,9 @@ class DarkClone extends Enemy {
     this.shootTimer -= dt;
     if (this.shootTimer <= 0) {
       this.shootTimer = 1.5 + Math.random() * 0.5;
-      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+15, -120, 0, '#8800FF', 5, 15));
-      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+15, -110, -40, '#8800FF', 4, 12));
-      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+15, -110, 40, '#8800FF', 4, 12));
+      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+15, -120, 0, '#FFAA44', 5, 15));
+      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+15, -110, -40, '#FFAA44', 4, 12));
+      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+15, -110, 40, '#FFAA44', 4, 12));
     }
     if (this.x < -40) this.alive = false;
   }
@@ -3569,7 +3598,7 @@ class GiantMechRobot extends Boss {
               enemyProjectiles.push(new EnemyProjectile(
                 this.x, this.y + 20 + i * 20,
                 -100 - Math.random()*30, (i-2)*20 + rand(-10,10),
-                '#FF4400', 5, 15
+                '#FF88AA', 5, 15
               ));
             }
             playSound('kiBlast');
@@ -3612,7 +3641,7 @@ class GiantMechRobot extends Boss {
                 enemyProjectiles.push(new EnemyProjectile(
                   this.x + 48, this.y + this.h,
                   -60 - i * 15, -40 - Math.random()*20,
-                  '#FFAA00', 6, 12
+                  '#FF88CC', 6, 12
                 ));
               }
             }
@@ -3723,9 +3752,9 @@ class AlienTyrant extends Boss {
           if (this.attackDuration > 0.4 && this.attackDuration < 0.5 && player) {
             var dx = player.x - this.x; var dy = player.y + 15 - (this.y + 40);
             var dist = Math.sqrt(dx*dx+dy*dy) || 1;
-            enemyProjectiles.push(new EnemyProjectile(this.x, this.y+40, (dx/dist)*180, (dy/dist)*180, '#FF00FF', 3, 18));
+            enemyProjectiles.push(new EnemyProjectile(this.x, this.y+40, (dx/dist)*180, (dy/dist)*180, '#FFAA88', 3, 18));
             if (this.transformed) {
-              enemyProjectiles.push(new EnemyProjectile(this.x, this.y+50, (dx/dist)*170, (dy/dist)*170, '#FF00FF', 3, 18));
+              enemyProjectiles.push(new EnemyProjectile(this.x, this.y+50, (dx/dist)*170, (dy/dist)*170, '#FFAA88', 3, 18));
             }
             playSound('kiBlast');
           }
@@ -3741,7 +3770,7 @@ class AlienTyrant extends Boss {
               enemyProjectiles.push(new EnemyProjectile(
                 this.x + 20, this.y + 120,
                 Math.cos(angle) * 90, Math.sin(angle) * 90,
-                '#CC00CC', 5, 14
+                '#88EEFF', 5, 14
               ));
             }
             playSound('melee');
@@ -3757,7 +3786,7 @@ class AlienTyrant extends Boss {
             spawnChargeSparkle(this.x - 20, this.y + 30, 50, '#FF6600');
           } else if (this.attackDuration >= 1.5 && this.attackDuration < 1.7) {
             // fire
-            enemyProjectiles.push(new EnemyProjectile(this.x-20, this.y+30, -80, 0, '#FF8800', 20, 30));
+            enemyProjectiles.push(new EnemyProjectile(this.x-20, this.y+30, -80, 0, '#FFDD44', 20, 30));
             playSound('explosion'); shakeScreen(5);
           }
           if (this.attackDuration > 3) {
@@ -3885,7 +3914,7 @@ class CosmicDemonKing extends Boss {
             var slamCount = this.extraArms ? 6 : 4;
             for (var i = 0; i < slamCount; i++) {
               var sx = rand(50, CANVAS_W - 100);
-              enemyProjectiles.push(new EnemyProjectile(sx, -20, 0, 130, '#CC00FF', 8, 20));
+              enemyProjectiles.push(new EnemyProjectile(sx, -20, 0, 130, '#FFAADD', 8, 20));
             }
             shakeScreen(8); playSound('melee');
           }
@@ -3925,7 +3954,7 @@ class CosmicDemonKing extends Boss {
               enemyProjectiles.push(new EnemyProjectile(
                 rand(30, CANVAS_W - 80), -10,
                 rand(-20, 20), rand(80, 140),
-                '#8800FF', 5, 12
+                '#FFAA44', 5, 12
               ));
             }
           }
