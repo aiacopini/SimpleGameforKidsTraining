@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Goku's Cloud Rider - Arcade Game</title>
+  <title>Goku's Candy Cloud Rider</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
@@ -413,10 +413,10 @@ function playSound(name) {
       var osc1 = audioCtx.createOscillator();
       var osc2 = audioCtx.createOscillator();
       var gain = audioCtx.createGain();
-      osc1.type = 'square';
-      osc1.frequency.setValueAtTime(1200, now);
-      osc1.frequency.exponentialRampToValueAtTime(300, now + 0.15);
-      osc2.type = 'sawtooth';
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(800, now);
+      osc1.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+      osc2.type = 'triangle';
       osc2.frequency.setValueAtTime(800, now);
       osc2.frequency.exponentialRampToValueAtTime(200, now + 0.12);
       gain.gain.setValueAtTime(0.25, now);
@@ -557,10 +557,10 @@ function playSound(name) {
       noise.buffer = buffer;
       var filter = audioCtx.createBiquadFilter();
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(3000, now);
+      filter.frequency.setValueAtTime(1500, now);
       filter.frequency.exponentialRampToValueAtTime(100, now + 0.4);
       var gain = audioCtx.createGain();
-      gain.gain.setValueAtTime(0.4, now);
+      gain.gain.setValueAtTime(0.25, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
       noise.connect(filter);
       filter.connect(gain);
@@ -569,10 +569,10 @@ function playSound(name) {
       // Low punch
       var osc = audioCtx.createOscillator();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(100, now);
+      osc.frequency.setValueAtTime(80, now);
       osc.frequency.exponentialRampToValueAtTime(20, now + 0.3);
       var oscGain = audioCtx.createGain();
-      oscGain.gain.setValueAtTime(0.5, now);
+      oscGain.gain.setValueAtTime(0.3, now);
       oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
       osc.connect(oscGain);
       oscGain.connect(masterGainNode);
@@ -606,10 +606,10 @@ function playSound(name) {
       // Damage taken - quick descending burst with noise
       var osc = audioCtx.createOscillator();
       osc.type = 'square';
-      osc.frequency.setValueAtTime(400, now);
+      osc.frequency.setValueAtTime(300, now);
       osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
       var gain = audioCtx.createGain();
-      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.setValueAtTime(0.2, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
       osc.connect(gain);
       gain.connect(masterGainNode);
@@ -4634,8 +4634,8 @@ var levelConfigs = [
   { // Level 0 (Earth)
     duration: 90,
     bossClass: GiantMechRobot,
-    name: 'EARTH',
-    subtitle: 'RED RIBBON BASE',
+    name: 'CANDY FIELDS',
+    subtitle: 'SWEET MEADOWS',
     spawns: [
       {t:2, type:'RedRibbonSoldier', count:2, yMin:200, yMax:380},
       {t:6, type:'RedRibbonSoldier', count:3, yMin:150, yMax:400},
@@ -4663,8 +4663,8 @@ var levelConfigs = [
   { // Level 1 (Namek)
     duration: 120,
     bossClass: AlienTyrant,
-    name: 'NAMEK',
-    subtitle: 'FRIEZAS DOMAIN',
+    name: 'CHOCOLATE KINGDOM',
+    subtitle: 'COCOA CASTLE',
     spawns: [
       {t:2, type:'FriezaSoldier', count:2, yMin:100, yMax:350},
       {t:8, type:'FriezaSoldier', count:3, yMin:80, yMax:380},
@@ -4695,8 +4695,8 @@ var levelConfigs = [
   { // Level 2 (Dark Realm)
     duration: 150,
     bossClass: CosmicDemonKing,
-    name: 'THE DARK REALM',
-    subtitle: 'COSMIC NIGHTMARE',
+    name: 'SUGAR CRYSTAL REALM',
+    subtitle: 'CRYSTAL PALACE',
     spawns: [
       {t:2, type:'CellJunior', count:2, yMin:100, yMax:350},
       {t:8, type:'CellJunior', count:3, yMin:80, yMax:400},
@@ -4815,11 +4815,11 @@ function updateMenu(dt) {
 }
 
 function drawMenu(ctx) {
-  // dark bg with stars
-  ctx.fillStyle = '#050510';
+  // candy pink bg with sprinkles
+  ctx.fillStyle = '#FFD4E8';
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-  // stars
-  ctx.fillStyle = '#FFF';
+  // golden sprinkles
+  ctx.fillStyle = '#FFD700';
   for (var i = 0; i < 60; i++) {
     var sx = (i * 53 + menuScrollX * 0.3 + i*i*7) % CANVAS_W;
     var sy = (i * 37 + i*i*3) % CANVAS_H;
@@ -4830,12 +4830,12 @@ function drawMenu(ctx) {
   // title glow
   ctx.save();
   ctx.globalAlpha = 0.15 + Math.sin(gameAge * 1.5) * 0.1;
-  ctx.fillStyle = '#FF6600';
+  ctx.fillStyle = '#FF88CC';
   ctx.beginPath(); ctx.arc(CANVAS_W/2, 130, 200, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
   // Title
   drawPixelTextCenteredWithShadow(ctx, 'GOKUS', CANVAS_W/2, 80, 6, '#FFD700', '#884400');
-  drawPixelTextCenteredWithShadow(ctx, 'CLOUD RIDER', CANVAS_W/2, 130, 5, '#FF8800', '#662200');
+  drawPixelTextCenteredWithShadow(ctx, 'CANDY RIDER', CANVAS_W/2, 130, 5, '#FF8800', '#662200');
   // animated goku on cloud
   ctx.save();
   ctx.translate(CANVAS_W/2 - 20 + Math.sin(gameAge * 2) * 10, 240 + Math.sin(gameAge * 3) * 8);
@@ -4871,7 +4871,7 @@ function drawMenu(ctx) {
   if (highScore > 0) {
     drawPixelTextCentered(ctx, 'HIGH SCORE: ' + highScore, CANVAS_W/2, 460, 2, '#FFD700');
   }
-  drawPixelTextCentered(ctx, 'DRAGON BALL ARCADE', CANVAS_W/2, 500, 1, '#555555');
+  drawPixelTextCentered(ctx, 'CANDY LAND ARCADE', CANVAS_W/2, 500, 1, '#555555');
 }
 
 // ---- LEVEL INTRO SCREEN ----
