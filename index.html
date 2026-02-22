@@ -3921,7 +3921,7 @@ class AlienTyrant extends Boss {
     // phase transition
     if (!this.transformed && this.hp < this.maxHp * 0.5) {
       this.transformed = true;
-      flash('#FF00FF', 0.6); shakeScreen(12); playSound('bossIntro');
+      flash('#FF88CC', 0.6); shakeScreen(12); playSound('bossIntro');
       this.attackCooldown = 2;
     }
     var speedMult = this.transformed ? 1.4 : 1;
@@ -3988,44 +3988,87 @@ class AlienTyrant extends Boss {
     if (!this.alive) return;
     var x = this.x, y = this.y;
     var fc = this.flashTimer > 0 ? '#FFF' : null;
-    var mainColor = this.transformed ? '#FFDDFF' : (fc || COLORS.bossLevel2Purple);
-    var darkColor = this.transformed ? '#EECCEE' : (fc || COLORS.bossLevel2PurpleDark);
-    // body
-    ctx.fillStyle = mainColor;
-    ctx.fillRect(x + 30, y + 40, 68, 80);
-    ctx.fillStyle = darkColor;
-    ctx.fillRect(x + 34, y + 44, 60, 72);
-    // head
-    ctx.fillStyle = fc || (this.transformed ? '#FFFFFF' : '#DDBBDD');
-    ctx.beginPath(); ctx.arc(x + 64, y + 28, 22, 0, Math.PI * 2); ctx.fill();
-    // horns
-    ctx.fillStyle = fc || '#880088';
+    var mainColor = this.transformed ? '#AAFFAA' : (fc || COLORS.bossLevel2Purple);
+    var bellyColor = this.transformed ? '#CCFFCC' : (fc || '#AAFFAA');
+    // serpentine body - long curved shape
+    ctx.fillStyle = fc || mainColor;
     ctx.beginPath();
-    ctx.moveTo(x + 45, y + 12); ctx.lineTo(x + 38, y - 15); ctx.lineTo(x + 55, y + 12);
-    ctx.fill();
+    ctx.moveTo(x + 20, y + 50);
+    ctx.quadraticCurveTo(x + 64, y + 35, x + 100, y + 55);
+    ctx.quadraticCurveTo(x + 120, y + 70, x + 110, y + 100);
+    ctx.quadraticCurveTo(x + 100, y + 130, x + 80, y + 140);
+    ctx.lineTo(x + 40, y + 140);
+    ctx.quadraticCurveTo(x + 10, y + 120, x + 10, y + 90);
+    ctx.quadraticCurveTo(x + 10, y + 65, x + 20, y + 50);
+    ctx.closePath(); ctx.fill();
+    // belly (lighter)
+    ctx.fillStyle = fc || bellyColor;
     ctx.beginPath();
-    ctx.moveTo(x + 73, y + 12); ctx.lineTo(x + 90, y - 15); ctx.lineTo(x + 83, y + 12);
+    ctx.ellipse(x + 60, y + 95, 25, 35, 0, 0, Math.PI * 2);
     ctx.fill();
-    // eyes
-    ctx.fillStyle = this.transformed ? '#FF0000' : '#CC0044';
-    ctx.fillRect(x + 54, y + 23, 6, 4);
-    ctx.fillRect(x + 68, y + 23, 6, 4);
-    // tail
+    // gumdrop scale dots on body
+    var scaleColors = ['#66CC22', '#77DD33', '#55BB11'];
+    for (var i = 0; i < 8; i++) {
+      ctx.fillStyle = fc || scaleColors[i % 3];
+      var sx = x + 25 + Math.sin(i * 1.5) * 20 + (i % 3) * 10;
+      var sy = y + 55 + i * 10;
+      ctx.beginPath(); ctx.arc(sx, sy, 4, 0, Math.PI * 2); ctx.fill();
+    }
+    // head - round candy dragon head
+    ctx.fillStyle = fc || mainColor;
+    ctx.beginPath(); ctx.arc(x + 64, y + 28, 26, 0, Math.PI * 2); ctx.fill();
+    // candy cane horns (red/white striped)
+    for (var h = 0; h < 2; h++) {
+      var hx = h === 0 ? x + 42 : x + 86;
+      var dir = h === 0 ? -1 : 1;
+      for (var s = 0; s < 6; s++) {
+        ctx.fillStyle = fc || (s % 2 === 0 ? '#FF4444' : '#FFFFFF');
+        var hornY = y + 10 - s * 5;
+        var hornX = hx + dir * s * 2;
+        ctx.fillRect(hornX - 3, hornY, 6, 6);
+      }
+    }
+    // big friendly-ish eyes
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(x + 54, y + 24, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + 74, y + 24, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = this.transformed ? '#FF4488' : '#44AA44';
+    ctx.beginPath(); ctx.arc(x + 55, y + 25, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + 73, y + 25, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#000000';
+    ctx.beginPath(); ctx.arc(x + 55, y + 25, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + 73, y + 25, 2, 0, Math.PI * 2); ctx.fill();
+    // wafer cookie wings
+    ctx.fillStyle = fc || '#FFCC88';
+    // left wing
+    ctx.beginPath();
+    ctx.moveTo(x + 15, y + 55);
+    ctx.lineTo(x - 20, y + 30 + Math.sin(this.age * 4) * 8);
+    ctx.lineTo(x - 15, y + 70);
+    ctx.closePath(); ctx.fill();
+    // right wing
+    ctx.beginPath();
+    ctx.moveTo(x + 105, y + 55);
+    ctx.lineTo(x + 140, y + 30 + Math.sin(this.age * 4) * 8);
+    ctx.lineTo(x + 135, y + 70);
+    ctx.closePath(); ctx.fill();
+    // wafer grid lines on wings
+    ctx.strokeStyle = fc || '#DDAA66';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x - 10, y + 40); ctx.lineTo(x + 5, y + 65); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x + 130, y + 40); ctx.lineTo(x + 115, y + 65); ctx.stroke();
+    // licorice whip tail
     ctx.strokeStyle = fc || COLORS.bossLevel2Tail;
     ctx.lineWidth = 6;
     ctx.beginPath();
-    ctx.moveTo(x + 98, y + 100);
-    ctx.quadraticCurveTo(x + 130, y + 80 + Math.sin(this.age * 3) * 20, x + 120, y + 60);
+    ctx.moveTo(x + 80, y + 138);
+    ctx.quadraticCurveTo(x + 120, y + 140 + Math.sin(this.age * 3) * 15, x + 130, y + 120);
+    ctx.quadraticCurveTo(x + 135, y + 105, x + 125, y + 95);
     ctx.stroke();
     ctx.lineWidth = 1;
-    // arms
-    ctx.fillStyle = mainColor;
-    ctx.fillRect(x + 10, y + 45, 22, 55);
-    ctx.fillRect(x + 96, y + 45, 22, 55);
-    // legs
-    ctx.fillStyle = darkColor;
-    ctx.fillRect(x + 36, y + 118, 24, 40);
-    ctx.fillRect(x + 68, y + 118, 24, 40);
+    // small mouth
+    ctx.fillStyle = fc || '#FF6688';
+    ctx.beginPath(); ctx.arc(x + 64, y + 38, 5, 0, Math.PI); ctx.fill();
     // supernova charge effect
     if (this.currentAttack === 'supernova' && this.attackDuration < 1.5) {
       var progress = this.attackDuration / 1.5;
@@ -4037,11 +4080,19 @@ class AlienTyrant extends Boss {
       ctx.beginPath(); ctx.arc(x - 20, y + 30, 5 + progress * 15, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
     }
-    // transformed aura
+    // transformed rainbow sparkle aura (replaces purple aura)
     if (this.transformed) {
-      ctx.save(); ctx.globalAlpha = 0.15 + Math.sin(this.age * 6) * 0.1;
-      ctx.fillStyle = '#FF00FF';
-      ctx.beginPath(); ctx.arc(x + 64, y + 70, 80, 0, Math.PI * 2); ctx.fill();
+      ctx.save();
+      var rainbowColors = ['#FF4444', '#FFAA44', '#FFFF44', '#44FF44', '#4488FF', '#AA44FF'];
+      for (var i = 0; i < 12; i++) {
+        var angle = this.age * 2 + i * (Math.PI * 2 / 12);
+        var sparkR = 70 + Math.sin(this.age * 4 + i) * 15;
+        var sparkX = x + 64 + Math.cos(angle) * sparkR;
+        var sparkY = y + 70 + Math.sin(angle) * sparkR;
+        ctx.globalAlpha = 0.4 + Math.sin(this.age * 6 + i) * 0.3;
+        ctx.fillStyle = rainbowColors[i % rainbowColors.length];
+        ctx.beginPath(); ctx.arc(sparkX, sparkY, 4 + Math.sin(this.age * 5 + i) * 2, 0, Math.PI * 2); ctx.fill();
+      }
       ctx.restore();
     }
     if (this.telegraphTimer > 0) {
@@ -4056,7 +4107,7 @@ class AlienTyrant extends Boss {
 // ---- LEVEL 3 BOSS: Cosmic Demon King ----
 class CosmicDemonKing extends Boss {
   constructor() {
-    super(CANVAS_W + 50, CANVAS_H/2 - 110, 192, 220, 800, 'COSMIC DEMON KING');
+    super(CANVAS_W + 50, CANVAS_H/2 - 110, 192, 220, 800, 'CAKE TITAN');
     this.attackPattern = 0;
     this.attacks = ['armSlam', 'mouthBeam', 'summon', 'darkRain'];
     this.attackCooldown = 3;
@@ -4071,11 +4122,11 @@ class CosmicDemonKing extends Boss {
     // phase transitions
     if (!this.extraArms && this.hp < this.maxHp * 0.6) {
       this.extraArms = true; this.phase = 2;
-      flash('#CC00FF', 0.5); shakeScreen(10); playSound('bossIntro');
+      flash('#FFD700', 0.5); shakeScreen(10); playSound('bossIntro');
     }
     if (!this.berserk && this.hp < this.maxHp * 0.3) {
       this.berserk = true; this.phase = 3;
-      flash('#FF0000', 0.8); shakeScreen(15); playSound('bossIntro');
+      flash('#FFD700', 0.8); shakeScreen(15); playSound('bossIntro');
     }
     var speedMult = this.berserk ? 2 : (this.extraArms ? 1.5 : 1);
     this.attackCooldown -= dt * speedMult;
@@ -4157,81 +4208,132 @@ class CosmicDemonKing extends Boss {
     if (!this.alive) return;
     var x = this.x, y = this.y;
     var fc = this.flashTimer > 0 ? '#FFF' : null;
-    // dark aura
+    // golden sparkle glow aura (replaces dark aura)
     ctx.save();
-    ctx.globalAlpha = this.berserk ? 0.4 : 0.2;
+    ctx.globalAlpha = this.berserk ? 0.35 : 0.2;
     ctx.fillStyle = COLORS.bossLevel3Glow;
     ctx.beginPath(); ctx.arc(x + 96, y + 110, 130 + Math.sin(this.age * 2) * 10, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
-    // body
-    ctx.fillStyle = fc || COLORS.bossLevel3Dark;
-    ctx.fillRect(x + 50, y + 50, 92, 120);
-    ctx.fillStyle = fc || '#220044';
-    ctx.fillRect(x + 56, y + 56, 80, 108);
-    // head
-    ctx.fillStyle = fc || COLORS.bossLevel3Dark;
-    ctx.beginPath(); ctx.arc(x + 96, y + 36, 30, 0, Math.PI * 2); ctx.fill();
-    // crown of horns
+    // golden sparkle particles around aura
+    ctx.save();
+    for (var i = 0; i < 8; i++) {
+      var sparkAngle = this.age * 1.5 + i * (Math.PI * 2 / 8);
+      var sparkDist = 110 + Math.sin(this.age * 3 + i) * 20;
+      var sparkX = x + 96 + Math.cos(sparkAngle) * sparkDist;
+      var sparkY = y + 110 + Math.sin(sparkAngle) * sparkDist;
+      ctx.globalAlpha = 0.3 + Math.sin(this.age * 5 + i * 2) * 0.2;
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath(); ctx.arc(sparkX, sparkY, 3 + Math.sin(this.age * 4 + i) * 1.5, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+    // === 3-TIER WEDDING CAKE BODY ===
+    // bottom tier (widest) - white with pink trim
+    ctx.fillStyle = fc || '#FFFFFF';
+    ctx.fillRect(x + 30, y + 140, 132, 55);
+    // pink trim on bottom tier
+    ctx.fillStyle = fc || '#FFD4E8';
+    ctx.fillRect(x + 30, y + 140, 132, 6);
+    ctx.fillRect(x + 30, y + 189, 132, 6);
+    // pink trim scallops on bottom tier
+    for (var i = 0; i < 7; i++) {
+      ctx.fillStyle = fc || '#FFD4E8';
+      ctx.beginPath(); ctx.arc(x + 40 + i * 19, y + 175, 6, 0, Math.PI); ctx.fill();
+    }
+    // middle tier - ivory with gold trim
+    ctx.fillStyle = fc || '#FFFFF0';
+    ctx.fillRect(x + 48, y + 85, 96, 58);
+    // gold trim on middle tier
+    ctx.fillStyle = fc || '#FFD700';
+    ctx.fillRect(x + 48, y + 85, 96, 5);
+    ctx.fillRect(x + 48, y + 138, 96, 5);
+    // gold trim scallops on middle tier
     for (var i = 0; i < 5; i++) {
-      var angle = -Math.PI * 0.8 + i * Math.PI * 0.4;
-      var hx = x + 96 + Math.cos(angle) * 28;
-      var hy = y + 36 + Math.sin(angle) * 28;
-      var tipX = x + 96 + Math.cos(angle) * 48;
-      var tipY = y + 36 + Math.sin(angle) * 48;
-      ctx.strokeStyle = fc || '#660088';
-      ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(tipX, tipY); ctx.stroke();
+      ctx.fillStyle = fc || '#FFD700';
+      ctx.beginPath(); ctx.arc(x + 58 + i * 19, y + 125, 5, 0, Math.PI); ctx.fill();
     }
-    ctx.lineWidth = 1;
-    // eyes
-    ctx.fillStyle = this.berserk ? '#FF0000' : COLORS.bossLevel3Eyes;
-    var eyeSize = this.berserk ? 6 : 4;
-    ctx.fillRect(x + 82, y + 30, eyeSize, eyeSize);
-    ctx.fillRect(x + 104, y + 30, eyeSize, eyeSize);
-    // mouth
-    ctx.fillStyle = '#FF0066';
-    ctx.fillRect(x + 86, y + 44, 20, 6);
-    // main arms (2)
-    ctx.fillStyle = fc || COLORS.bossLevel3Dark;
-    ctx.fillRect(x + 16, y + 55, 36, 20);
-    ctx.fillRect(x + 140, y + 55, 36, 20);
-    // fists
-    ctx.fillStyle = fc || '#330055';
-    ctx.fillRect(x + 4, y + 50, 20, 30);
-    ctx.fillRect(x + 168, y + 50, 20, 30);
-    // extra arms (phase 2+)
+    // top tier (smallest) - with decorative dome top
+    ctx.fillStyle = fc || '#FFFFFF';
+    ctx.fillRect(x + 66, y + 45, 60, 43);
+    // pink decorative trim on top tier
+    ctx.fillStyle = fc || '#FFD4E8';
+    ctx.fillRect(x + 66, y + 45, 60, 4);
+    ctx.fillRect(x + 66, y + 84, 60, 4);
+    // decorative dome topper
+    ctx.fillStyle = fc || '#FFFFF0';
+    ctx.beginPath(); ctx.arc(x + 96, y + 45, 20, Math.PI, 0); ctx.fill();
+    // birthday candles on top (crown)
+    var candleColors = ['#FF6688', '#88CCFF', '#FFDD44', '#88FF88', '#FFAACC'];
+    for (var i = 0; i < 5; i++) {
+      var cx = x + 76 + i * 10;
+      var cy = y + 20;
+      // candle stick
+      ctx.fillStyle = fc || candleColors[i];
+      ctx.fillRect(cx - 2, cy, 4, 18);
+      // flame
+      ctx.fillStyle = fc || '#FFDD44';
+      ctx.beginPath(); ctx.arc(cx, cy - 2, 4, 0, Math.PI * 2); ctx.fill();
+      // flame inner
+      ctx.fillStyle = fc || '#FFFFFF';
+      ctx.beginPath(); ctx.arc(cx, cy - 1, 2, 0, Math.PI * 2); ctx.fill();
+      // flame flicker
+      ctx.fillStyle = '#FFAA22';
+      ctx.globalAlpha = 0.5 + Math.sin(this.age * 8 + i * 1.3) * 0.3;
+      ctx.beginPath(); ctx.arc(cx, cy - 4, 3 + Math.sin(this.age * 10 + i) * 1.5, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    // candy eyes on the middle tier
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(x + 82, y + 105, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + 110, y + 105, 8, 0, Math.PI * 2); ctx.fill();
+    // eye color
+    ctx.fillStyle = this.berserk ? '#FF4488' : COLORS.bossLevel3Eyes;
+    var eyeSize = this.berserk ? 5 : 4;
+    ctx.beginPath(); ctx.arc(x + 80, y + 106, eyeSize, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + 108, y + 106, eyeSize, 0, Math.PI * 2); ctx.fill();
+    // pupils
+    ctx.fillStyle = '#000000';
+    ctx.beginPath(); ctx.arc(x + 80, y + 106, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + 108, y + 106, 2, 0, Math.PI * 2); ctx.fill();
+    // mouth on middle tier
+    ctx.fillStyle = fc || '#FF88AA';
+    ctx.beginPath(); ctx.arc(x + 96, y + 120, 8, 0, Math.PI); ctx.fill();
+    // fondant decorative arms
+    ctx.fillStyle = fc || '#FFE4CC';
+    ctx.fillRect(x + 16, y + 95, 34, 16);
+    ctx.fillRect(x + 142, y + 95, 34, 16);
+    // fondant arm hands (rounded ends)
+    ctx.fillStyle = fc || '#FFD4BB';
+    ctx.beginPath(); ctx.arc(x + 16, y + 103, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + 176, y + 103, 10, 0, Math.PI * 2); ctx.fill();
+    // extra fondant arms (phase 2+)
     if (this.extraArms) {
-      ctx.fillStyle = fc || '#1A0030';
-      ctx.fillRect(x + 20, y + 90, 32, 16);
-      ctx.fillRect(x + 140, y + 90, 32, 16);
-      ctx.fillStyle = fc || '#330055';
-      ctx.fillRect(x + 8, y + 86, 18, 24);
-      ctx.fillRect(x + 166, y + 86, 18, 24);
+      ctx.fillStyle = fc || '#FFE4CC';
+      ctx.fillRect(x + 20, y + 150, 32, 14);
+      ctx.fillRect(x + 140, y + 150, 32, 14);
+      ctx.fillStyle = fc || '#FFD4BB';
+      ctx.beginPath(); ctx.arc(x + 20, y + 157, 9, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x + 172, y + 157, 9, 0, Math.PI * 2); ctx.fill();
     }
-    // legs
-    ctx.fillStyle = fc || COLORS.bossLevel3Dark;
-    ctx.fillRect(x + 56, y + 168, 30, 50);
-    ctx.fillRect(x + 106, y + 168, 30, 50);
-    // mouth beam effect
+    // frosting stream effect (replaces mouth beam, purple to pink)
     if (this.currentAttack === 'mouthBeam' && this.attackDuration > 0.8 && this.attackDuration < 2.3) {
       var beamY = y + 80 + Math.sin(this.attackDuration * 3) * 40;
       ctx.save();
       ctx.globalAlpha = 0.3;
-      ctx.fillStyle = '#CC00FF';
+      ctx.fillStyle = '#FF88CC';
       ctx.fillRect(0, beamY - 14, x + 50, 28);
       ctx.globalAlpha = 0.6;
-      ctx.fillStyle = '#DD44FF';
+      ctx.fillStyle = '#FFAADD';
       ctx.fillRect(0, beamY - 8, x + 50, 16);
       ctx.globalAlpha = 1;
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, beamY - 2, x + 50, 4);
       ctx.restore();
     }
-    // berserk dark overlay
+    // berserk warm golden glow overlay (replaces dark overlay)
     if (this.berserk) {
       ctx.save();
-      ctx.globalAlpha = 0.1 + Math.sin(this.age * 8) * 0.05;
-      ctx.fillStyle = '#000000';
+      ctx.globalAlpha = 0.08 + Math.sin(this.age * 8) * 0.04;
+      ctx.fillStyle = '#FFD700';
       ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
       ctx.restore();
     }
@@ -4336,124 +4438,194 @@ function drawCloud(ctx, x, y, r) {
 }
 
 function drawNamekBg(ctx, scrollX, age) {
-  // green sky
-  ctx.fillStyle = COLORS.namekSkyGreen;
+  // sky: warm golden/amber gradient
+  var skyGrd = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
+  skyGrd.addColorStop(0, '#FFCC88');
+  skyGrd.addColorStop(1, '#FFE0AA');
+  ctx.fillStyle = skyGrd;
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-  // gradient to darker
-  var grd = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
-  grd.addColorStop(0, COLORS.namekSkyGreenDark);
-  grd.addColorStop(1, COLORS.namekSkyGreen);
-  ctx.fillStyle = grd;
-  ctx.fillRect(0, 0, CANVAS_W, 200);
-  // multiple suns
-  ctx.fillStyle = '#FFEE88';
-  ctx.beginPath(); ctx.arc(200, 60, 25, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#88DDAA';
-  ctx.beginPath(); ctx.arc(650, 45, 18, 0, Math.PI * 2); ctx.fill();
-  // far spires
+  // chocolate sun: brown circle with golden glow
+  ctx.save();
+  ctx.globalAlpha = 0.3;
+  ctx.fillStyle = '#FFAA44';
+  ctx.beginPath(); ctx.arc(200, 70, 55, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  ctx.fillStyle = '#884422';
+  ctx.beginPath(); ctx.arc(200, 70, 35, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#AA6633';
+  ctx.beginPath(); ctx.arc(195, 62, 10, 0, Math.PI * 2); ctx.fill();
+  // wafer towers (far): tall tan rectangles with grid lines
   var sOff = -(scrollX * 0.15) % 600;
-  ctx.fillStyle = COLORS.namekRockBrown;
   for (var i = -1; i < 6; i++) {
     var sx = i * 180 + sOff;
-    var sh = 100 + (i%3) * 50;
-    ctx.fillRect(sx + 5, 300 - sh, 12, sh + 50);
-    ctx.beginPath(); ctx.arc(sx + 11, 300 - sh, 10, 0, Math.PI * 2); ctx.fill();
+    var sh = 100 + (i % 3) * 50;
+    ctx.fillStyle = '#FFCC88';
+    ctx.fillRect(sx + 5, 300 - sh, 30, sh + 50);
+    // grid lines on wafer
+    ctx.strokeStyle = '#DDAA66';
+    ctx.lineWidth = 1;
+    for (var g = 0; g < sh + 50; g += 10) {
+      ctx.beginPath(); ctx.moveTo(sx + 5, 300 - sh + g); ctx.lineTo(sx + 35, 300 - sh + g); ctx.stroke();
+    }
+    for (var g = 0; g < 30; g += 10) {
+      ctx.beginPath(); ctx.moveTo(sx + 5 + g, 300 - sh); ctx.lineTo(sx + 5 + g, 350); ctx.stroke();
+    }
   }
-  // namekian buildings
+  // cookie buildings (mid): round/dome shapes with square windows
   var bOff = -(scrollX * 0.35) % 700;
-  ctx.fillStyle = '#EEEECC';
   for (var i = 0; i < 4; i++) {
     var bx = ((i * 220 + bOff) % (CANVAS_W + 200));
-    ctx.beginPath(); ctx.arc(bx + 20, 380, 25, 0, Math.PI * 2); ctx.fill();
-    ctx.fillRect(bx + 12, 380, 16, 30);
-    ctx.fillStyle = '#225544';
-    ctx.fillRect(bx + 16, 390, 8, 10);
-    ctx.fillStyle = '#EEEECC';
+    ctx.fillStyle = '#DDAA66';
+    ctx.beginPath(); ctx.arc(bx + 25, 380, 30, Math.PI, 0); ctx.closePath(); ctx.fill();
+    ctx.fillRect(bx - 5, 380, 60, 30);
+    // square windows
+    ctx.fillStyle = '#FFEE99';
+    ctx.fillRect(bx + 5, 385, 10, 10);
+    ctx.fillRect(bx + 30, 385, 10, 10);
   }
-  // ground
-  ctx.fillStyle = COLORS.namekGroundTeal;
+  // ground: rich chocolate brown
+  ctx.fillStyle = '#553311';
   ctx.fillRect(0, 400, CANVAS_W, 140);
-  ctx.fillStyle = COLORS.namekGroundBlue;
+  ctx.fillStyle = '#664422';
   ctx.fillRect(0, 395, CANVAS_W, 8);
-  // craters
-  var cOff = -(scrollX * 0.5) % 500;
-  ctx.fillStyle = '#3D6B5C';
-  for (var i = 0; i < 4; i++) {
-    var cx = ((i * 180 + cOff) % (CANVAS_W + 100));
-    ctx.beginPath(); ctx.ellipse(cx, 440 + (i%2)*20, 20 + i*5, 8, 0, 0, Math.PI * 2); ctx.fill();
+  // chocolate river: wavy brown stripe with highlights
+  var rOff = -(scrollX * 0.5) % 500;
+  ctx.fillStyle = '#442211';
+  ctx.beginPath();
+  ctx.moveTo(0, 440);
+  for (var x = 0; x <= CANVAS_W; x += 20) {
+    ctx.lineTo(x, 440 + Math.sin((x + rOff) * 0.03) * 6);
   }
-  // alien plants
-  ctx.fillStyle = '#44AA66';
-  for (var i = 0; i < 3; i++) {
-    var px = ((i * 280 + cOff + 100) % (CANVAS_W + 100));
-    ctx.fillRect(px, 405, 3, 20);
-    ctx.beginPath(); ctx.arc(px + 1, 402, 6, 0, Math.PI * 2); ctx.fill();
+  for (var x = CANVAS_W; x >= 0; x -= 20) {
+    ctx.lineTo(x, 455 + Math.sin((x + rOff) * 0.03) * 4);
+  }
+  ctx.closePath();
+  ctx.fill();
+  // river highlights
+  ctx.strokeStyle = '#663322';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (var x = 0; x <= CANVAS_W; x += 20) {
+    if (x === 0) ctx.moveTo(x, 447 + Math.sin((x + rOff) * 0.03) * 5);
+    else ctx.lineTo(x, 447 + Math.sin((x + rOff) * 0.03) * 5);
+  }
+  ctx.stroke();
+  ctx.lineWidth = 1;
+  // scattered cocoa beans: small brown ovals
+  var cOff = -(scrollX * 0.6) % 800;
+  ctx.fillStyle = '#553322';
+  for (var i = 0; i < 8; i++) {
+    var cx = ((i * 130 + cOff) % (CANVAS_W + 200));
+    var cy = 465 + (i % 3) * 12;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 6, 4, (i * 0.5), 0, Math.PI * 2);
+    ctx.fill();
+    // highlight on bean
+    ctx.fillStyle = '#774433';
+    ctx.beginPath();
+    ctx.ellipse(cx - 1, cy - 1, 3, 2, (i * 0.5), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#553322';
   }
 }
 
 function drawDarkRealmBg(ctx, scrollX, age) {
-  // dark background
-  ctx.fillStyle = COLORS.darkRealmBg;
+  // sky: light ethereal blue-white (magical candy realm)
+  var skyGrd = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
+  skyGrd.addColorStop(0, '#DDEEFF');
+  skyGrd.addColorStop(1, '#EEEEFF');
+  ctx.fillStyle = skyGrd;
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-  // nebula swirls
+  // rainbow streaks: diagonal stripes with low opacity
   ctx.save();
   ctx.globalAlpha = 0.15;
-  ctx.fillStyle = COLORS.nebulaBlue;
-  ctx.beginPath(); ctx.arc(300 + Math.sin(age * 0.2) * 50, 150, 180, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = COLORS.nebulaPink;
-  ctx.beginPath(); ctx.arc(700 + Math.cos(age * 0.15) * 40, 300, 150, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#4400AA';
-  ctx.beginPath(); ctx.arc(500 + Math.sin(age * 0.3) * 30, 400, 120, 0, Math.PI * 2); ctx.fill();
+  var rainbowColors = ['#FFAAAA', '#FFDDAA', '#FFFFAA', '#AAFFAA', '#AADDFF', '#DDAAFF'];
+  for (var i = 0; i < rainbowColors.length; i++) {
+    ctx.fillStyle = rainbowColors[i];
+    ctx.beginPath();
+    var rx = 80 + i * 120 + Math.sin(age * 0.3 + i) * 20;
+    ctx.moveTo(rx, 0);
+    ctx.lineTo(rx + 60, 0);
+    ctx.lineTo(rx - 100, CANVAS_H);
+    ctx.lineTo(rx - 160, CANVAS_H);
+    ctx.closePath();
+    ctx.fill();
+  }
   ctx.restore();
-  // stars
+  // star sprinkles: small colored dots twinkling
   var starOff = -(scrollX * 0.1) % CANVAS_W;
-  ctx.fillStyle = COLORS.starWhite;
+  var sprinkleColors = ['#FFAACC', '#AACCFF', '#CCFFAA', '#FFDDAA', '#DDAAFF', '#AAFFDD'];
   for (var i = 0; i < 50; i++) {
     var sx = ((i * 47 + starOff + i * i * 7) % CANVAS_W);
-    var sy = (i * 31 + i * i * 3) % CANVAS_H;
-    var ss = (i % 3 === 0) ? 2 : 1;
-    ctx.globalAlpha = 0.4 + Math.sin(age * 2 + i) * 0.3;
-    ctx.fillRect(sx, sy, ss, ss);
+    var sy = (i * 31 + i * i * 3) % (CANVAS_H - 100);
+    var ss = (i % 3 === 0) ? 3 : 2;
+    ctx.globalAlpha = 0.5 + Math.sin(age * 2 + i) * 0.3;
+    ctx.fillStyle = sprinkleColors[i % sprinkleColors.length];
+    ctx.beginPath(); ctx.arc(sx, sy, ss, 0, Math.PI * 2); ctx.fill();
   }
   ctx.globalAlpha = 1;
-  // floating debris
+  // sugar crystals (mid layer): geometric shapes with white highlights
   var dOff = -(scrollX * 0.3) % 800;
-  ctx.fillStyle = '#332244';
+  var crystalColors = ['#CCDDFF', '#FFCCDD', '#DDFFCC'];
   for (var i = 0; i < 6; i++) {
     var dx = ((i * 180 + dOff) % (CANVAS_W + 200)) - 50;
-    var dy = 200 + (i % 3) * 100 + Math.sin(age + i * 2) * 20;
+    var dy = 200 + (i % 3) * 80 + Math.sin(age + i * 2) * 15;
+    var cSize = 15 + (i % 3) * 8;
+    ctx.fillStyle = crystalColors[i % crystalColors.length];
     ctx.save();
     ctx.translate(dx, dy);
-    ctx.rotate(age * 0.3 + i);
-    ctx.fillRect(-10 - i*3, -8, 20 + i*6, 16);
+    ctx.rotate(age * 0.1 + i);
+    // draw diamond shape
+    ctx.beginPath();
+    ctx.moveTo(0, -cSize);
+    ctx.lineTo(cSize * 0.6, 0);
+    ctx.lineTo(0, cSize);
+    ctx.lineTo(-cSize * 0.6, 0);
+    ctx.closePath();
+    ctx.fill();
+    // white sparkle highlight
+    ctx.fillStyle = '#FFFFFF';
+    ctx.globalAlpha = 0.6 + Math.sin(age * 3 + i * 1.5) * 0.3;
+    ctx.beginPath(); ctx.arc(-cSize * 0.15, -cSize * 0.3, cSize * 0.15, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
     ctx.restore();
   }
-  // dark energy wisps
-  ctx.save();
-  ctx.globalAlpha = 0.2;
-  ctx.strokeStyle = '#8800FF';
-  ctx.lineWidth = 2;
-  var wOff = -(scrollX * 0.4) % 600;
+  // floating candy platforms: colorful rectangles/ovals
+  var pOff = -(scrollX * 0.4) % 600;
+  var platColors = ['#FF99BB', '#99CCFF', '#BBFF99', '#FFCC99', '#CC99FF'];
   for (var i = 0; i < 4; i++) {
-    var wx = ((i * 200 + wOff) % (CANVAS_W + 200));
+    var px = ((i * 200 + pOff) % (CANVAS_W + 200));
+    var py = 300 + (i % 2) * 40 + Math.sin(age * 0.8 + i * 1.5) * 10;
+    ctx.fillStyle = platColors[i % platColors.length];
     ctx.beginPath();
-    ctx.moveTo(wx, 250 + i * 50);
-    ctx.quadraticCurveTo(wx + 50, 250 + i * 50 + Math.sin(age * 2 + i) * 40, wx + 100, 250 + i * 50);
-    ctx.stroke();
+    ctx.ellipse(px + 30, py, 35, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // candy stripe on platform
+    ctx.fillStyle = '#FFFFFF';
+    ctx.globalAlpha = 0.4;
+    ctx.beginPath();
+    ctx.ellipse(px + 30, py - 2, 25, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
   }
-  ctx.restore();
-  // glowing cracks on bottom
-  ctx.fillStyle = '#110020';
+  // ground: sparkling sugar surface
+  ctx.fillStyle = '#EEEEFF';
   ctx.fillRect(0, 430, CANVAS_W, 110);
-  ctx.strokeStyle = '#CC00FF';
-  ctx.lineWidth = 1;
-  ctx.globalAlpha = 0.4 + Math.sin(age * 3) * 0.2;
+  ctx.fillStyle = '#DDDDFF';
+  ctx.fillRect(0, 425, CANVAS_W, 8);
+  // sparkle dots on the ground
   var crOff = -(scrollX * 0.6) % 400;
-  for (var i = 0; i < 6; i++) {
-    var crx = ((i * 120 + crOff) % (CANVAS_W + 100));
-    ctx.beginPath(); ctx.moveTo(crx, 440); ctx.lineTo(crx + 20, 460); ctx.lineTo(crx + 10, 480); ctx.stroke();
+  for (var i = 0; i < 20; i++) {
+    var crx = ((i * 55 + crOff) % (CANVAS_W + 100));
+    var cry = 440 + (i % 4) * 15;
+    ctx.globalAlpha = 0.4 + Math.sin(age * 3 + i * 2) * 0.3;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(crx, cry, 2, 0, Math.PI * 2); ctx.fill();
+    // colored sparkle next to white
+    ctx.fillStyle = sprinkleColors[i % sprinkleColors.length];
+    ctx.beginPath(); ctx.arc(crx + 8, cry + 3, 1.5, 0, Math.PI * 2); ctx.fill();
   }
-  ctx.globalAlpha = 1; ctx.lineWidth = 1;
+  ctx.globalAlpha = 1;
 }
 
 // ---- LEVEL SPAWN DATA ----
