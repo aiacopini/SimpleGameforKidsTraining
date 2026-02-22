@@ -2543,14 +2543,14 @@ class Player {
     const centerX = x + this.w / 2;
     const f = this.facing;   // 1 = right, -1 = left
 
-    // Color palette
-    const SKIN = '#FFCC80';       // skin tone
-    const SKIN_DARK = '#FFB74D';  // skin shadow
-    const GI_ORANGE = '#FF6D00';  // gi top/bottom
-    const GI_DARK = '#E65100';    // gi shadow
-    const BELT_BLUE = '#1565C0';  // belt / wristbands
+    // Color palette (brighter for visibility)
+    const SKIN = '#FFD699';       // skin tone (brighter)
+    const SKIN_DARK = '#FFC266';  // skin shadow (brighter)
+    const GI_ORANGE = '#FF8C00';  // gi top/bottom (brighter orange)
+    const GI_DARK = '#F57C00';    // gi shadow (brighter)
+    const BELT_BLUE = '#1E88E5';  // belt / wristbands (brighter blue)
     const HAIR_BLACK = '#1A1A1A'; // hair
-    const BOOT_BLUE = '#0D47A1';  // boots
+    const BOOT_BLUE = '#1565C0';  // boots (brighter)
     const WHITE = '#FFFFFF';       // eyes / highlights
     const EYE_BLACK = '#000000';
 
@@ -2620,39 +2620,39 @@ class Player {
     ctx.fill();
 
     // Eyes
-    const eyeOffX = f * 2;
+    const eyeOffX = f * 3;
     // Left eye
     ctx.fillStyle = WHITE;
-    ctx.fillRect(headX + eyeOffX - 4, headY - 2, 3, 3);
+    ctx.fillRect(headX + eyeOffX - 6, headY - 3, 4, 4);
     ctx.fillStyle = EYE_BLACK;
-    ctx.fillRect(headX + eyeOffX - 3 + (f > 0 ? 1 : 0), headY - 1, 1.5, 2);
+    ctx.fillRect(headX + eyeOffX - 5 + (f > 0 ? 1 : 0), headY - 2, 2, 3);
 
     // Right eye
     ctx.fillStyle = WHITE;
-    ctx.fillRect(headX + eyeOffX + 1, headY - 2, 3, 3);
+    ctx.fillRect(headX + eyeOffX + 1, headY - 3, 4, 4);
     ctx.fillStyle = EYE_BLACK;
-    ctx.fillRect(headX + eyeOffX + 2 + (f > 0 ? 1 : 0), headY - 1, 1.5, 2);
+    ctx.fillRect(headX + eyeOffX + 2 + (f > 0 ? 1 : 0), headY - 2, 2, 3);
 
     // Mouth (small line)
     if (state === 'charging' || state === 'firing' || state === 'spiritBomb') {
       // Open mouth (yelling)
       ctx.fillStyle = '#D84315';
-      ctx.fillRect(headX + eyeOffX - 2, headY + 4, 4, 2);
+      ctx.fillRect(headX + eyeOffX - 3, headY + 5, 6, 3);
     } else if (state === 'hit') {
       // Grimace
       ctx.strokeStyle = SKIN_DARK;
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(headX + eyeOffX - 2, headY + 5);
-      ctx.lineTo(headX + eyeOffX + 2, headY + 4);
+      ctx.moveTo(headX + eyeOffX - 3, headY + 6);
+      ctx.lineTo(headX + eyeOffX + 3, headY + 5);
       ctx.stroke();
     } else {
       // Neutral / slight smile
       ctx.strokeStyle = SKIN_DARK;
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(headX + eyeOffX - 1, headY + 4);
-      ctx.quadraticCurveTo(headX + eyeOffX + 1, headY + 6, headX + eyeOffX + 3, headY + 4);
+      ctx.moveTo(headX + eyeOffX - 2, headY + 5);
+      ctx.quadraticCurveTo(headX + eyeOffX + 1, headY + 8, headX + eyeOffX + 4, headY + 5);
       ctx.stroke();
     }
 
@@ -2661,70 +2661,70 @@ class Player {
 
     // Hair base (covers top of head)
     ctx.beginPath();
-    ctx.arc(headX, headY - 1, headR + 1, Math.PI, 2 * Math.PI);
+    ctx.arc(headX, headY - 1, headR + 2, Math.PI, 2 * Math.PI);
     ctx.fill();
 
-    // Spiky hair - multiple triangular spikes pointing up and to the right
+    // Spiky hair - multiple triangular spikes pointing up and to the right (scaled up ~40%)
     // Main center spike (tallest)
     ctx.beginPath();
-    ctx.moveTo(headX - 2, headY - headR + 1);
-    ctx.lineTo(headX + 1, headY - headR - 12);
-    ctx.lineTo(headX + 4, headY - headR + 2);
+    ctx.moveTo(headX - 3, headY - headR + 1);
+    ctx.lineTo(headX + 1, headY - headR - 17);
+    ctx.lineTo(headX + 6, headY - headR + 3);
     ctx.closePath();
     ctx.fill();
 
     // Right spike (pointing up-right)
     ctx.beginPath();
-    ctx.moveTo(headX + 3, headY - headR + 1);
-    ctx.lineTo(headX + 8, headY - headR - 9);
-    ctx.lineTo(headX + 7, headY - headR + 3);
+    ctx.moveTo(headX + 4, headY - headR + 1);
+    ctx.lineTo(headX + 11, headY - headR - 13);
+    ctx.lineTo(headX + 10, headY - headR + 4);
     ctx.closePath();
     ctx.fill();
 
     // Far right spike (more to the right)
     ctx.beginPath();
-    ctx.moveTo(headX + 6, headY - headR + 3);
-    ctx.lineTo(headX + 13, headY - headR - 5);
-    ctx.lineTo(headX + 9, headY - headR + 5);
+    ctx.moveTo(headX + 8, headY - headR + 4);
+    ctx.lineTo(headX + 18, headY - headR - 7);
+    ctx.lineTo(headX + 13, headY - headR + 7);
     ctx.closePath();
     ctx.fill();
 
     // Left spike
     ctx.beginPath();
-    ctx.moveTo(headX - 5, headY - headR + 2);
-    ctx.lineTo(headX - 4, headY - headR - 8);
+    ctx.moveTo(headX - 7, headY - headR + 3);
+    ctx.lineTo(headX - 6, headY - headR - 11);
     ctx.lineTo(headX - 1, headY - headR + 1);
     ctx.closePath();
     ctx.fill();
 
     // Far left spike (smaller)
     ctx.beginPath();
-    ctx.moveTo(headX - 8, headY - headR + 4);
-    ctx.lineTo(headX - 9, headY - headR - 3);
-    ctx.lineTo(headX - 4, headY - headR + 2);
+    ctx.moveTo(headX - 11, headY - headR + 6);
+    ctx.lineTo(headX - 13, headY - headR - 4);
+    ctx.lineTo(headX - 6, headY - headR + 3);
     ctx.closePath();
     ctx.fill();
 
     // Side hair (covers ears area on the side Goku faces away from)
     ctx.beginPath();
-    ctx.moveTo(headX - f * 7, headY - 3);
-    ctx.lineTo(headX - f * 10, headY - 6);
-    ctx.lineTo(headX - f * 9, headY + 1);
+    ctx.moveTo(headX - f * 10, headY - 4);
+    ctx.lineTo(headX - f * 14, headY - 8);
+    ctx.lineTo(headX - f * 13, headY + 1);
     ctx.closePath();
     ctx.fill();
 
     // Forehead bang spikes (small, pointing forward-down)
     ctx.beginPath();
-    ctx.moveTo(headX + f * 3, headY - headR + 2);
-    ctx.lineTo(headX + f * 6, headY - 4);
-    ctx.lineTo(headX + f * 1, headY - 4);
+    ctx.moveTo(headX + f * 4, headY - headR + 3);
+    ctx.lineTo(headX + f * 8, headY - 5);
+    ctx.lineTo(headX + f * 1, headY - 5);
     ctx.closePath();
     ctx.fill();
 
     ctx.beginPath();
     ctx.moveTo(headX + f * 1, headY - headR + 1);
-    ctx.lineTo(headX + f * 3, headY - 2);
-    ctx.lineTo(headX - f * 1, headY - 3);
+    ctx.lineTo(headX + f * 4, headY - 3);
+    ctx.lineTo(headX - f * 1, headY - 4);
     ctx.closePath();
     ctx.fill();
 
@@ -2742,8 +2742,8 @@ class Player {
     const GI_ORANGE = '#FF6D00';
     const BELT_BLUE = '#1565C0';
     const SKIN_DARK = '#FFB74D';
-    const armW = 5;
-    const armH = 10;
+    const armW = 7;
+    const armH = 14;
 
     switch (state) {
       case 'idle':
@@ -2751,19 +2751,19 @@ class Player {
         // Arms at sides, slightly angled
         // Left arm
         ctx.fillStyle = GI_ORANGE;
-        ctx.fillRect(centerX - 10, bodyTop + 2, armW, armH);
+        ctx.fillRect(centerX - 14, bodyTop + 3, armW, armH);
         ctx.fillStyle = SKIN;
-        ctx.fillRect(centerX - 10, bodyTop + armH, armW, 4);
+        ctx.fillRect(centerX - 14, bodyTop + armH, armW, 6);
         ctx.fillStyle = BELT_BLUE;
-        ctx.fillRect(centerX - 10, bodyTop + armH - 1, armW, 2);
+        ctx.fillRect(centerX - 14, bodyTop + armH - 2, armW, 3);
 
         // Right arm
         ctx.fillStyle = GI_ORANGE;
-        ctx.fillRect(centerX + 5, bodyTop + 2, armW, armH);
+        ctx.fillRect(centerX + 7, bodyTop + 3, armW, armH);
         ctx.fillStyle = SKIN;
-        ctx.fillRect(centerX + 5, bodyTop + armH, armW, 4);
+        ctx.fillRect(centerX + 7, bodyTop + armH, armW, 6);
         ctx.fillStyle = BELT_BLUE;
-        ctx.fillRect(centerX + 5, bodyTop + armH - 1, armW, 2);
+        ctx.fillRect(centerX + 7, bodyTop + armH - 2, armW, 3);
         break;
 
       case 'moving':
@@ -2771,19 +2771,19 @@ class Player {
         // Back arm
         ctx.save();
         ctx.fillStyle = GI_ORANGE;
-        ctx.fillRect(centerX - f * 9, bodyTop + 3, armW, armH - 1);
+        ctx.fillRect(centerX - f * 13, bodyTop + 4, armW, armH - 1);
         ctx.fillStyle = SKIN;
-        ctx.fillRect(centerX - f * 9, bodyTop + armH, armW, 3);
+        ctx.fillRect(centerX - f * 13, bodyTop + armH, armW, 4);
         ctx.fillStyle = BELT_BLUE;
-        ctx.fillRect(centerX - f * 9, bodyTop + armH - 1, armW, 2);
+        ctx.fillRect(centerX - f * 13, bodyTop + armH - 2, armW, 3);
 
         // Front arm (forward)
         ctx.fillStyle = GI_ORANGE;
-        ctx.fillRect(centerX + f * 6, bodyTop + 1, armW, armH - 1);
+        ctx.fillRect(centerX + f * 8, bodyTop + 1, armW, armH - 1);
         ctx.fillStyle = SKIN;
-        ctx.fillRect(centerX + f * 6, bodyTop + armH - 2, armW, 3);
+        ctx.fillRect(centerX + f * 8, bodyTop + armH - 3, armW, 4);
         ctx.fillStyle = BELT_BLUE;
-        ctx.fillRect(centerX + f * 6, bodyTop + armH - 3, armW, 2);
+        ctx.fillRect(centerX + f * 8, bodyTop + armH - 4, armW, 3);
         ctx.restore();
         break;
 
@@ -2791,28 +2791,28 @@ class Player {
         // One arm extended forward, other at side
         // Back arm (at side)
         ctx.fillStyle = GI_ORANGE;
-        ctx.fillRect(centerX - f * 9, bodyTop + 2, armW, armH);
+        ctx.fillRect(centerX - f * 13, bodyTop + 3, armW, armH);
         ctx.fillStyle = SKIN;
-        ctx.fillRect(centerX - f * 9, bodyTop + armH, armW, 4);
+        ctx.fillRect(centerX - f * 13, bodyTop + armH, armW, 6);
         ctx.fillStyle = BELT_BLUE;
-        ctx.fillRect(centerX - f * 9, bodyTop + armH - 1, armW, 2);
+        ctx.fillRect(centerX - f * 13, bodyTop + armH - 2, armW, 3);
 
         // Extended arm (forward, horizontal)
         ctx.fillStyle = GI_ORANGE;
-        const extStartX = centerX + f * 5;
-        const extY = bodyTop + 4;
-        ctx.fillRect(f > 0 ? extStartX : extStartX - 14, extY, 14, armW);
+        const extStartX = centerX + f * 7;
+        const extY = bodyTop + 5;
+        ctx.fillRect(f > 0 ? extStartX : extStartX - 20, extY, 20, armW);
         // Hand / fist at end
         ctx.fillStyle = SKIN;
-        ctx.fillRect(f > 0 ? extStartX + 12 : extStartX - 16, extY - 1, 5, armW + 2);
+        ctx.fillRect(f > 0 ? extStartX + 17 : extStartX - 23, extY - 1, 7, armW + 2);
         // Wristband
         ctx.fillStyle = BELT_BLUE;
-        ctx.fillRect(f > 0 ? extStartX + 10 : extStartX - 12, extY, 3, armW);
+        ctx.fillRect(f > 0 ? extStartX + 14 : extStartX - 17, extY, 4, armW);
 
         // Palm glow for ki
         ctx.fillStyle = 'rgba(255, 255, 100, 0.5)';
         ctx.beginPath();
-        ctx.arc(f > 0 ? extStartX + 17 : extStartX - 17, extY + armW / 2, 4, 0, Math.PI * 2);
+        ctx.arc(f > 0 ? extStartX + 24 : extStartX - 24, extY + armW / 2, 6, 0, Math.PI * 2);
         ctx.fill();
         break;
 
@@ -2820,31 +2820,31 @@ class Player {
         // Punching forward with fist
         // Back arm tucked
         ctx.fillStyle = GI_ORANGE;
-        ctx.fillRect(centerX - f * 8, bodyTop + 4, armW, armH - 3);
+        ctx.fillRect(centerX - f * 11, bodyTop + 5, armW, armH - 4);
         ctx.fillStyle = SKIN;
-        ctx.fillRect(centerX - f * 8, bodyTop + armH - 1, armW, 3);
+        ctx.fillRect(centerX - f * 11, bodyTop + armH - 1, armW, 4);
 
         // Punching arm (extended far forward)
         ctx.fillStyle = GI_ORANGE;
-        const punchStartX = centerX + f * 5;
-        const punchY = bodyTop + 3;
-        ctx.fillRect(f > 0 ? punchStartX : punchStartX - 18, punchY, 18, armW);
+        const punchStartX = centerX + f * 7;
+        const punchY = bodyTop + 4;
+        ctx.fillRect(f > 0 ? punchStartX : punchStartX - 25, punchY, 25, armW);
         // Fist (bigger square for emphasis)
         ctx.fillStyle = SKIN;
-        ctx.fillRect(f > 0 ? punchStartX + 16 : punchStartX - 22, punchY - 1, 6, armW + 2);
+        ctx.fillRect(f > 0 ? punchStartX + 22 : punchStartX - 30, punchY - 1, 8, armW + 2);
         ctx.fillStyle = BELT_BLUE;
-        ctx.fillRect(f > 0 ? punchStartX + 14 : punchStartX - 17, punchY, 3, armW);
+        ctx.fillRect(f > 0 ? punchStartX + 20 : punchStartX - 24, punchY, 4, armW);
 
         // Impact lines (small white streaks)
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-        ctx.lineWidth = 1.5;
-        const fistTipX = f > 0 ? punchStartX + 22 : punchStartX - 22;
+        ctx.lineWidth = 2;
+        const fistTipX = f > 0 ? punchStartX + 30 : punchStartX - 30;
         const fistTipY = punchY + armW / 2;
         for (let i = 0; i < 3; i++) {
           const angle = (i - 1) * 0.3;
           ctx.beginPath();
-          ctx.moveTo(fistTipX + f * 3, fistTipY + Math.sin(angle) * 4);
-          ctx.lineTo(fistTipX + f * 10, fistTipY + Math.sin(angle) * 8);
+          ctx.moveTo(fistTipX + f * 4, fistTipY + Math.sin(angle) * 6);
+          ctx.lineTo(fistTipX + f * 14, fistTipY + Math.sin(angle) * 11);
           ctx.stroke();
         }
         break;
@@ -2853,29 +2853,29 @@ class Player {
         // Kamehameha pose: both arms pulled back, hands together
         // Both arms pulled to the side (opposite of facing)
         ctx.fillStyle = GI_ORANGE;
-        const chargeArmX = centerX - f * 10;
-        const chargeArmY = bodyTop + 5;
+        const chargeArmX = centerX - f * 14;
+        const chargeArmY = bodyTop + 7;
 
         // Upper arm going back
-        ctx.fillRect(chargeArmX - 3, chargeArmY, 8, armW);
-        ctx.fillRect(chargeArmX - 3, chargeArmY + armW, 8, armW);
+        ctx.fillRect(chargeArmX - 4, chargeArmY, 11, armW);
+        ctx.fillRect(chargeArmX - 4, chargeArmY + armW, 11, armW);
 
         // Forearms
         ctx.fillStyle = SKIN;
-        ctx.fillRect(chargeArmX - f * 6, chargeArmY + 1, armW, armW);
-        ctx.fillRect(chargeArmX - f * 6, chargeArmY + armW, armW, armW);
+        ctx.fillRect(chargeArmX - f * 8, chargeArmY + 1, armW, armW);
+        ctx.fillRect(chargeArmX - f * 8, chargeArmY + armW, armW, armW);
 
         // Wristbands
         ctx.fillStyle = BELT_BLUE;
-        ctx.fillRect(chargeArmX - f * 4, chargeArmY + 1, 2, armW);
-        ctx.fillRect(chargeArmX - f * 4, chargeArmY + armW, 2, armW);
+        ctx.fillRect(chargeArmX - f * 6, chargeArmY + 1, 3, armW);
+        ctx.fillRect(chargeArmX - f * 6, chargeArmY + armW, 3, armW);
 
         // Cupped hands
         ctx.fillStyle = SKIN;
-        const handCX = chargeArmX - f * 8;
+        const handCX = chargeArmX - f * 11;
         const handCY = chargeArmY + armW;
         ctx.beginPath();
-        ctx.arc(handCX, handCY, 4, 0, Math.PI * 2);
+        ctx.arc(handCX, handCY, 6, 0, Math.PI * 2);
         ctx.fill();
 
         // Energy glow between hands (drawn elsewhere in drawFull)
@@ -2884,61 +2884,61 @@ class Player {
       case 'firing':
         // Kamehameha firing: arms extended forward together
         ctx.fillStyle = GI_ORANGE;
-        const fireStartX = centerX + f * 3;
-        const fireY = bodyTop + 4;
+        const fireStartX = centerX + f * 4;
+        const fireY = bodyTop + 5;
 
         // Two arms side by side, extended forward
-        ctx.fillRect(f > 0 ? fireStartX : fireStartX - 16, fireY, 16, armW);
-        ctx.fillRect(f > 0 ? fireStartX : fireStartX - 16, fireY + armW + 1, 16, armW);
+        ctx.fillRect(f > 0 ? fireStartX : fireStartX - 22, fireY, 22, armW);
+        ctx.fillRect(f > 0 ? fireStartX : fireStartX - 22, fireY + armW + 1, 22, armW);
 
         // Hands together at end
         ctx.fillStyle = SKIN;
-        const handFireX = f > 0 ? fireStartX + 14 : fireStartX - 20;
-        ctx.fillRect(handFireX, fireY - 1, 6, armW * 2 + 3);
+        const handFireX = f > 0 ? fireStartX + 20 : fireStartX - 28;
+        ctx.fillRect(handFireX, fireY - 1, 8, armW * 2 + 3);
 
         // Wristbands
         ctx.fillStyle = BELT_BLUE;
-        const wbX = f > 0 ? fireStartX + 12 : fireStartX - 15;
-        ctx.fillRect(wbX, fireY, 3, armW);
-        ctx.fillRect(wbX, fireY + armW + 1, 3, armW);
+        const wbX = f > 0 ? fireStartX + 17 : fireStartX - 21;
+        ctx.fillRect(wbX, fireY, 4, armW);
+        ctx.fillRect(wbX, fireY + armW + 1, 4, armW);
 
         // Bright glow at hands
         ctx.fillStyle = 'rgba(100, 180, 255, 0.6)';
         ctx.beginPath();
-        ctx.arc(handFireX + 3, fireY + armW, 8, 0, Math.PI * 2);
+        ctx.arc(handFireX + 4, fireY + armW, 11, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
         ctx.beginPath();
-        ctx.arc(handFireX + 3, fireY + armW, 4, 0, Math.PI * 2);
+        ctx.arc(handFireX + 4, fireY + armW, 6, 0, Math.PI * 2);
         ctx.fill();
         break;
 
       case 'spiritBomb':
         // Arms raised above head
         ctx.fillStyle = GI_ORANGE;
-        const raiseX1 = centerX - 8;
-        const raiseX2 = centerX + 3;
-        const raiseY = bodyTop - 12;
+        const raiseX1 = centerX - 11;
+        const raiseX2 = centerX + 4;
+        const raiseY = bodyTop - 17;
 
         // Left arm raised up
-        ctx.fillRect(raiseX1, raiseY, armW, 14);
+        ctx.fillRect(raiseX1, raiseY, armW, 20);
         ctx.fillStyle = SKIN;
-        ctx.fillRect(raiseX1, raiseY - 3, armW, 4);
+        ctx.fillRect(raiseX1, raiseY - 4, armW, 6);
         ctx.fillStyle = BELT_BLUE;
-        ctx.fillRect(raiseX1, raiseY - 1, armW, 2);
+        ctx.fillRect(raiseX1, raiseY - 1, armW, 3);
 
         // Right arm raised up
         ctx.fillStyle = GI_ORANGE;
-        ctx.fillRect(raiseX2, raiseY, armW, 14);
+        ctx.fillRect(raiseX2, raiseY, armW, 20);
         ctx.fillStyle = SKIN;
-        ctx.fillRect(raiseX2, raiseY - 3, armW, 4);
+        ctx.fillRect(raiseX2, raiseY - 4, armW, 6);
         ctx.fillStyle = BELT_BLUE;
-        ctx.fillRect(raiseX2, raiseY - 1, armW, 2);
+        ctx.fillRect(raiseX2, raiseY - 1, armW, 3);
 
         // Upward glow
         ctx.fillStyle = 'rgba(200, 220, 255, 0.4)';
         ctx.beginPath();
-        ctx.arc(centerX, raiseY - 6, 10, 0, Math.PI * 2);
+        ctx.arc(centerX, raiseY - 8, 14, 0, Math.PI * 2);
         ctx.fill();
         break;
 
@@ -2946,19 +2946,19 @@ class Player {
         // Flinching: arms pulled in, body leaning back
         ctx.fillStyle = GI_ORANGE;
         // Both arms close to body, slightly up (defensive flinch)
-        ctx.fillRect(centerX - 9, bodyTop + 1, armW, armH - 2);
+        ctx.fillRect(centerX - 13, bodyTop + 1, armW, armH - 3);
         ctx.fillStyle = SKIN;
-        ctx.fillRect(centerX - 9, bodyTop - 1, armW, 3);
+        ctx.fillRect(centerX - 13, bodyTop - 1, armW, 4);
 
         ctx.fillStyle = GI_ORANGE;
-        ctx.fillRect(centerX + 4, bodyTop + 1, armW, armH - 2);
+        ctx.fillRect(centerX + 6, bodyTop + 1, armW, armH - 3);
         ctx.fillStyle = SKIN;
-        ctx.fillRect(centerX + 4, bodyTop - 1, armW, 3);
+        ctx.fillRect(centerX + 6, bodyTop - 1, armW, 4);
 
         // Pain indicators (small stars or flashes)
         if (Math.random() > 0.5) {
           ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-          ctx.fillRect(centerX + f * 12, bodyTop - 4, 3, 3);
+          ctx.fillRect(centerX + f * 17, bodyTop - 5, 4, 4);
         }
         break;
     }
