@@ -1,193 +1,150 @@
-# Goku's Cloud Rider - Arcade Game Plan
+# Goku's Cloud Rider - Candy Land Overhaul Plan
 
-## Overview
-A retro pixel-art side-scrolling arcade game where Goku rides his Nimbus cloud through 3 levels of increasing difficulty. Pure HTML/CSS/JS using Canvas API - single `index.html` file, zero dependencies.
+## Issues to Fix
+1. Game is absurdly fast (unplayable)
+2. Graphics are too small and poor quality
+3. Theme needs to be kid-friendly (candy/cookies instead of weapons/lasers)
+4. Environment should be softer and more colorful
 
----
+## Theme: Candy Land
+- Goku throws cookies/donuts instead of Ki blasts
+- Kamehameha becomes a rainbow candy beam
+- Spirit Bomb becomes a giant lollipop
+- Melee becomes a candy cane swipe
+- Enemies throw candy projectiles (gumdrops, jawbreakers)
+- Power-ups: cupcakes (health), candy canes (energy), golden cookie (extra life)
+- Bosses: Level 1 = Giant Cupcake Monster, Level 2 = Mega Candy Dragon, Level 3 = Supreme Cake Titan
+- Backgrounds: candy fields, chocolate rivers, cookie mountains
 
-## Game Structure
+## Implementation Steps (Small & Focused)
 
-### Core Engine (inside `index.html`)
-- **Game Loop**: `requestAnimationFrame`-based 60fps loop with delta-time
-- **State Machine**: Menu -> Level Intro -> Playing -> Boss Fight -> Level Complete -> Game Over / Victory
-- **Canvas Rendering**: 960x540 pixel canvas, scaled to fit browser window responsively
-- **Input Handler**: Keyboard controls (arrow keys + action keys), with on-screen touch controls for mobile
-- **Collision System**: AABB rectangle-based collision detection
-- **Camera**: Horizontal scrolling camera that follows Goku
+### Step 1: Fix Game Speed
+- Fix delta time calculation (currently divides by 16.67 making dt ~60x too large)
+- Reduce SCROLL_SPEED from 2 to 0.8
+- Reduce all movement speeds by ~60%
+- Reduce all projectile speeds by ~60%
+- **Files**: index.html (game loop dt calc, constants)
 
-### Controls
-| Key | Action |
-|-----|--------|
-| Arrow Keys | Move Goku (up/down/left/right on cloud) |
-| Z | Ki Blast (projectile) |
-| X | Melee Attack (punch/kick combo) |
-| C (hold) | Charge Kamehameha (release to fire beam) |
-| V | Spirit Bomb (ultimate - requires full energy bar) |
+### Step 2: Fix Colors & Constants
+- Update COLORS object with candy-land palette (pink, pastel, bright)
+- Replace dark/violent colors with cheerful ones
+- Update background color schemes for all 3 levels
+- **Files**: index.html (COLORS section)
 
----
+### Step 3: Improve Goku Sprite (Bigger & Brighter)
+- Scale Goku sprite up 2x (from 32x40 to 64x80)
+- Redraw with smoother shapes (arcs instead of rects)
+- Brighter orange gi, more detailed hair spikes
+- Bigger, fluffier Nimbus cloud
+- Update hitbox and positioning
+- **Files**: index.html (Player class draw methods)
 
-## Goku & Nimbus Cloud (Player Character)
+### Step 4: Retheme Player Attacks to Candy
+- KiBlast → Cookie projectile (round brown cookie with chips)
+- KamehamehaBeam → Rainbow candy beam (multi-colored)
+- SpiritBomb → Giant lollipop (spiral colored circle)
+- Melee → Candy cane swipe (curved red/white arc)
+- Update projectile visuals, keep mechanics
+- **Files**: index.html (KiBlast, KamehamehaBeam, SpiritBomb draw methods)
 
-### Pixel Art Sprites (drawn via Canvas)
-- Idle on cloud (animated floating)
-- Moving (cloud trail effect)
-- Ki blast firing pose
-- Melee punch / kick (2-frame combo)
-- Kamehameha charge + fire pose
-- Spirit Bomb raising hands pose
-- Hit/damage animation
-- Death animation
+### Step 5: Retheme Power-ups to Candy
+- Senzu → Cupcake (pink frosting, cherry on top)
+- Ki orb → Candy cane (red/white striped)
+- Dragon ball → Golden cookie (star shape)
+- Speed → Cotton candy (fluffy pink/blue)
+- Make them 2x bigger, more visible
+- **Files**: index.html (PowerUp class draw method)
 
-### Stats
-- **HP**: 100 (shown as health bar)
-- **Ki Energy**: 0-100 (charges over time + from pickups; Spirit Bomb costs 100)
-- **Lives**: 3
+### Step 6: Retheme Level 1 Enemies to Candy Creatures
+- RedRibbonSoldier → Gingerbread Man (walks, throws gumdrops)
+- BattleRobot → Flying Donut (sine wave, drops sprinkles)
+- NinjaAssassin → Jellybean Runner (fast, bouncy)
+- Make enemies 1.5-2x bigger, rounder shapes, bright colors
+- Reduce enemy speeds to match new game pace
+- **Files**: index.html (Level 1 enemy classes)
 
-### Power-ups (dropped by enemies)
-- Senzu Bean (restore HP)
-- Ki Orb (restore Ki energy)
-- Dragon Ball (collect for extra life)
-- Speed Boost (temporary speed increase)
+### Step 7: Retheme Level 2 Enemies
+- FriezaSoldier → Candy Corn Flyer (flies, shoots candy)
+- BruteWarrior → Chocolate Truffle Charger (charges at player)
+- GinyuStriker → Lollipop Dancer (groups, colorful)
+- Same size/speed adjustments as Step 6
+- **Files**: index.html (Level 2 enemy classes)
 
----
+### Step 8: Retheme Level 3 Enemies
+- CellJunior → Sour Gummy Bear (fast, throws gummy projectiles)
+- DarkClone → Shadow Cookie (dark mirror of Goku)
+- BuuBlob → Bubble Gum Blob (splits into smaller bubbles)
+- Same size/speed adjustments
+- **Files**: index.html (Level 3 enemy classes)
 
-## Level Design
+### Step 9: Retheme Enemy Projectiles
+- Replace all dark/violent projectile colors with candy colors
+- Make projectiles look like gumdrops, jawbreakers, sprinkles
+- Larger, rounder, more visible projectiles
+- Reduce projectile damage for kid-friendly difficulty
+- **Files**: index.html (EnemyProjectile class, enemy shoot methods)
 
-### Level 1: "Earth - Red Ribbon Base"
-- **Setting**: Green mountains, blue sky, scattered buildings
-- **Scrolling Background**: Parallax layers (far mountains, near hills, ground)
-- **Regular Enemies**:
-  - Red Ribbon Soldiers (walk on platforms, shoot guns) - Low HP
-  - Battle Robots (fly slowly, shoot projectiles) - Medium HP
-  - Ninja Assassins (fast, melee attacks) - Low HP
-- **Hazards**: Missiles from off-screen, explosive barrels
-- **Duration**: ~90 seconds of scrolling before boss
-- **Boss: Giant Mech Robot** (~3x Goku's size)
-  - Attacks: Rocket barrage, laser beam sweep, ground pound
-  - Weak point: Glowing chest core (flashes when vulnerable)
-  - HP: 300
+### Step 10: Retheme Level 1 Boss - Giant Cupcake Monster
+- Replace Mech Robot with Giant Cupcake (96x128 → bigger, rounder)
+- Frosting top, cherry eye, candy sprinkle attacks
+- Rockets → Sprinkle barrage, Laser → Frosting beam, Ground pound → Cherry bounce
+- Cheerful but imposing design
+- **Files**: index.html (GiantMechRobot class → rename + redraw)
 
-### Level 2: "Namek - Frieza's Domain"
-- **Setting**: Green sky, blue-green terrain, Namekian villages, Dragon Balls scattered in background
-- **Scrolling Background**: Parallax (alien sky, rock formations, ground with craters)
-- **Regular Enemies**:
-  - Frieza Soldiers (fly and shoot Ki blasts) - Medium HP
-  - Dodoria-type brutes (charge at Goku) - High HP
-  - Ginyu Pose Strikers (appear in groups, coordinated attacks) - Medium HP
-- **Hazards**: Exploding Namekian terrain, energy storms
-- **Duration**: ~120 seconds of scrolling before boss
-- **Boss: Giant Alien Tyrant** (~5x Goku's size)
-  - Attacks: Death beam barrage, tail whip (wide arc), supernova charge (big energy ball)
-  - Phase 2: Transforms and gets faster at 50% HP
-  - HP: 500
+### Step 11: Retheme Level 2 Boss - Mega Candy Dragon
+- Replace Alien Tyrant with Candy Dragon
+- Made of licorice, gumdrop scales, candy cane horns
+- Death beam → Candy beam, Tail whip → Licorice whip, Supernova → Giant jawbreaker
+- Phase 2: Rainbow transformation
+- **Files**: index.html (AlienTyrant class → rename + redraw)
 
-### Level 3: "Hyperbolic Time Chamber to Dark Realm"
-- **Setting**: Starts white void, transitions to dark cosmic realm with stars and nebulas
-- **Scrolling Background**: Parallax (void/stars, dark energy swirls, floating debris)
-- **Regular Enemies**:
-  - Cell Juniors (fast, Ki blasts + melee) - Medium HP
-  - Dark Energy Clones (mirror Goku's attacks) - High HP
-  - Buu Blobs (split into 2 smaller when hit) - Variable HP
-- **Hazards**: Black holes (pull Goku in), dark energy walls
-- **Duration**: ~150 seconds of scrolling before boss
-- **Boss: Cosmic Demon King** (~8x Goku's size, fills right side of screen)
-  - Attacks: Multi-arm slam, mouth beam, summon minions, dark energy rain
-  - Phase 2 (60% HP): Grows extra arms, attacks faster
-  - Phase 3 (30% HP): Goes berserk, screen shakes, rapid attacks
-  - HP: 800
+### Step 12: Retheme Level 3 Boss - Supreme Cake Titan
+- Replace Cosmic Demon with massive multi-tier wedding cake boss
+- Fondant arms, candle crown, frosting attacks
+- Arm slam → Fondant drops, Mouth beam → Frosting stream, Summon → Mini cupcakes
+- Phase 3: Burning candles (dramatic but not scary)
+- **Files**: index.html (CosmicDemonKing class → rename + redraw)
 
----
+### Step 13: Retheme Level 1 Background - Candy Fields
+- Replace Earth mountains with candy cane hills
+- Cotton candy clouds, gumdrop bushes
+- Chocolate river ground, cookie crumble path
+- Bright pink/blue sky
+- **Files**: index.html (drawEarthBg function)
 
-## Visual & Audio Design
+### Step 14: Retheme Level 2 Background - Chocolate Kingdom
+- Replace Namek with chocolate landscape
+- Wafer towers instead of spires, chocolate lake
+- Cookie buildings, licorice trees
+- Warm brown/golden sky
+- **Files**: index.html (drawNamekBg function)
 
-### Pixel Art Style
-- 16-bit inspired sprites drawn programmatically on Canvas
-- Goku: Orange gi, black hair (spiky), yellow Nimbus cloud
-- Enemies: Distinct color palettes per level
-- Particle effects: Ki blast trails, explosions, charge-up auras
-- Screen shake on big hits and boss attacks
+### Step 15: Retheme Level 3 Background - Sugar Crystal Realm
+- Replace Dark Realm with sparkling sugar crystals
+- Rock candy formations, sugar glass platforms
+- Rainbow streaks instead of dark nebulas
+- Bright but mystical atmosphere (not dark/scary)
+- **Files**: index.html (drawDarkRealmBg function)
 
-### UI/HUD
-- Top-left: HP bar (green to red gradient)
-- Top-center: Ki Energy bar (blue glow)
-- Top-right: Score counter + Lives (small Goku heads)
-- Boss fights: Boss HP bar appears at top of screen
-- Level intro: Large text with level name + "FIGHT!" flash
+### Step 16: Update UI/Menus to Candy Theme
+- Title screen: "GOKU'S CANDY CLOUD RIDER"
+- Pink/pastel color scheme for HUD
+- HP bar → Cookie jar meter, Ki bar → Candy meter
+- Boss names updated to candy names
+- Level names: "Candy Fields", "Chocolate Kingdom", "Sugar Crystal Realm"
+- Victory/Game Over screens with candy colors
+- **Files**: index.html (menu, HUD, UI drawing functions)
 
-### Visual Effects
-- Parallax scrolling backgrounds (3 layers per level)
-- Star/particle field for space level
-- Screen flash on Kamehameha and Spirit Bomb
-- Explosion particles on enemy death
-- Goku aura glow during charge attacks
-- Cloud trail particles behind Nimbus
+### Step 17: Update Sounds to Be Kid-Friendly
+- Softer, more cheerful sound effects
+- Replace explosion sounds with "pop" and "splat"
+- More musical/whimsical tones
+- **Files**: index.html (playSound function)
 
-### Sound (Web Audio API)
-- Procedurally generated retro sound effects (no audio files needed):
-  - Ki blast: short energy burst
-  - Kamehameha: rising charge + beam sound
-  - Melee hit: impact thud
-  - Spirit Bomb: epic rising tone
-  - Enemy hit/death: explosion pop
-  - Power-up collect: cheerful chime
-  - Boss entrance: dramatic rumble
-  - Level complete: victory fanfare
-
----
-
-## Implementation Steps
-
-### Step 1: Core Engine & Game Shell
-- HTML/CSS layout with centered canvas
-- Game loop with delta time
-- State machine (menu, playing, paused, game over)
-- Input handling (keyboard + touch)
-- Basic rendering pipeline
-
-### Step 2: Player Character (Goku + Nimbus)
-- Pixel art sprite rendering for Goku on cloud
-- Movement physics (8-directional, cloud bobbing)
-- All attack animations and projectiles
-- HP/Ki systems
-- Hit detection and invincibility frames
-
-### Step 3: Level System & Backgrounds
-- Parallax scrolling background system
-- Level data structure (enemy spawns, timing, hazards)
-- Camera system
-- Level transitions and intro screens
-- All 3 level backgrounds
-
-### Step 4: Enemies & AI
-- Base enemy class with movement/attack patterns
-- All enemy types for each level (9 types total)
-- Enemy projectiles and collision
-- Death animations and loot drops
-- Power-up items
-
-### Step 5: Boss Fights
-- Boss state machines (idle, attack patterns, vulnerable, phase transitions)
-- Level 1 Boss: Giant Mech Robot (3 attacks, 1 phase)
-- Level 2 Boss: Alien Tyrant (3 attacks, 2 phases)
-- Level 3 Boss: Cosmic Demon King (4 attacks, 3 phases)
-- Boss HP bars and intro sequences
-
-### Step 6: UI, Effects & Polish
-- HUD (HP, Ki, Score, Lives)
-- Menu screen with "Press Start"
-- Particle system for all visual effects
-- Screen shake and flash effects
-- Sound effects (Web Audio API)
-- Game over and victory screens
-- High score tracking (localStorage)
-- Mobile touch controls overlay
-
----
-
-## File Structure
-```
-/index.html    - The entire game (single file, ~3000-4000 lines)
-/README.md     - How to play instructions
-```
-
-Everything is self-contained. Open `index.html` in any modern browser to play.
+### Step 18: Final Balance & Polish
+- Playtest speed (ensure moderate pace)
+- Adjust enemy spawn rates for "Normal" difficulty
+- Ensure all boss fights are fair but beatable
+- Particle effects: more colorful (confetti, sprinkles)
+- Final cleanup and verification
+- **Files**: index.html (spawn data, boss HP, damage values)
