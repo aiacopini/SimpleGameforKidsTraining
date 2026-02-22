@@ -2554,33 +2554,33 @@ class Player {
     const WHITE = '#FFFFFF';       // eyes / highlights
     const EYE_BLACK = '#000000';
 
-    // ----- Positions reference -----
+    // ----- Positions reference (scaled up ~40%) -----
     // Head center
     const headX = centerX;
-    const headY = y + 10;
-    const headR = 8;
+    const headY = y + 14;
+    const headR = 11;
 
     // Body
-    const bodyTop = y + 18;
-    const bodyW = 14;
-    const bodyH = 12;
+    const bodyTop = y + 25;
+    const bodyW = 20;
+    const bodyH = 17;
 
     // Legs
     const legTop = bodyTop + bodyH;
-    const legW = 6;
-    const legH = 10;
+    const legW = 8;
+    const legH = 14;
 
     // ----- DRAW LEGS (behind body) -----
     // Left leg
     ctx.fillStyle = GI_ORANGE;
-    ctx.fillRect(centerX - 7, legTop, legW, legH);
+    ctx.fillRect(centerX - 10, legTop, legW, legH);
     // Right leg
-    ctx.fillRect(centerX + 1, legTop, legW, legH);
+    ctx.fillRect(centerX + 2, legTop, legW, legH);
 
     // Boots
     ctx.fillStyle = BOOT_BLUE;
-    ctx.fillRect(centerX - 8, legTop + legH - 4, legW + 1, 4);
-    ctx.fillRect(centerX + 1, legTop + legH - 4, legW + 1, 4);
+    ctx.fillRect(centerX - 11, legTop + legH - 6, legW + 2, 6);
+    ctx.fillRect(centerX + 2, legTop + legH - 6, legW + 2, 6);
 
     // ----- DRAW BODY / TORSO -----
     ctx.fillStyle = GI_ORANGE;
@@ -2588,18 +2588,18 @@ class Player {
 
     // Gi shadow (left side fold)
     ctx.fillStyle = GI_DARK;
-    ctx.fillRect(centerX - bodyW / 2, bodyTop, 3, bodyH);
+    ctx.fillRect(centerX - bodyW / 2, bodyTop, 4, bodyH);
 
     // Belt / sash
     ctx.fillStyle = BELT_BLUE;
-    ctx.fillRect(centerX - bodyW / 2 - 1, bodyTop + bodyH - 3, bodyW + 2, 3);
+    ctx.fillRect(centerX - bodyW / 2 - 1, bodyTop + bodyH - 4, bodyW + 2, 4);
 
     // Gi collar V-neck detail
     ctx.fillStyle = SKIN;
     ctx.beginPath();
-    ctx.moveTo(centerX - 3, bodyTop);
-    ctx.lineTo(centerX, bodyTop + 5);
-    ctx.lineTo(centerX + 3, bodyTop);
+    ctx.moveTo(centerX - 4, bodyTop);
+    ctx.lineTo(centerX, bodyTop + 7);
+    ctx.lineTo(centerX + 4, bodyTop);
     ctx.closePath();
     ctx.fill();
 
