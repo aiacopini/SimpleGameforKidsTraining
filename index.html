@@ -3368,7 +3368,7 @@ class BuuBlob extends Enemy {
   constructor(x, y, size) {
     var sz = size || 1;
     var w = Math.floor(24 * sz); var h = Math.floor(24 * sz);
-    super(x, y, w, h, Math.floor(70 * sz), 1.5, Math.floor(175 * sz));
+    super(x, y, w, h, Math.floor(70 * sz), 70, Math.floor(175 * sz));
     this.blobSize = sz; this.wobble = Math.random() * Math.PI * 2;
   }
   update(dt) {
@@ -3664,9 +3664,9 @@ class AlienTyrant extends Boss {
           if (this.attackDuration > 0.4 && this.attackDuration < 0.5 && player) {
             var dx = player.x - this.x; var dy = player.y + 15 - (this.y + 40);
             var dist = Math.sqrt(dx*dx+dy*dy) || 1;
-            enemyProjectiles.push(new EnemyProjectile(this.x, this.y+40, (dx/dist)*300, (dy/dist)*300, '#FF00FF', 3, 18));
+            enemyProjectiles.push(new EnemyProjectile(this.x, this.y+40, (dx/dist)*180, (dy/dist)*180, '#FF00FF', 3, 18));
             if (this.transformed) {
-              enemyProjectiles.push(new EnemyProjectile(this.x, this.y+50, (dx/dist)*280, (dy/dist)*280, '#FF00FF', 3, 18));
+              enemyProjectiles.push(new EnemyProjectile(this.x, this.y+50, (dx/dist)*170, (dy/dist)*170, '#FF00FF', 3, 18));
             }
             playSound('kiBlast');
           }
@@ -3681,7 +3681,7 @@ class AlienTyrant extends Boss {
               var angle = -Math.PI * 0.8 + (i / 6) * Math.PI * 0.6;
               enemyProjectiles.push(new EnemyProjectile(
                 this.x + 20, this.y + 120,
-                Math.cos(angle) * 140, Math.sin(angle) * 140,
+                Math.cos(angle) * 90, Math.sin(angle) * 90,
                 '#CC00CC', 5, 14
               ));
             }
@@ -3698,7 +3698,7 @@ class AlienTyrant extends Boss {
             spawnChargeSparkle(this.x - 20, this.y + 30, 50, '#FF6600');
           } else if (this.attackDuration >= 1.5 && this.attackDuration < 1.7) {
             // fire
-            enemyProjectiles.push(new EnemyProjectile(this.x-20, this.y+30, -120, 0, '#FF8800', 20, 30));
+            enemyProjectiles.push(new EnemyProjectile(this.x-20, this.y+30, -80, 0, '#FF8800', 20, 30));
             playSound('explosion'); shakeScreen(5);
           }
           if (this.attackDuration > 3) {
@@ -3826,7 +3826,7 @@ class CosmicDemonKing extends Boss {
             var slamCount = this.extraArms ? 6 : 4;
             for (var i = 0; i < slamCount; i++) {
               var sx = rand(50, CANVAS_W - 100);
-              enemyProjectiles.push(new EnemyProjectile(sx, -20, 0, 200, '#CC00FF', 8, 20));
+              enemyProjectiles.push(new EnemyProjectile(sx, -20, 0, 130, '#CC00FF', 8, 20));
             }
             shakeScreen(8); playSound('melee');
           }
@@ -3865,7 +3865,7 @@ class CosmicDemonKing extends Boss {
             for (var i = 0; i < 3; i++) {
               enemyProjectiles.push(new EnemyProjectile(
                 rand(30, CANVAS_W - 80), -10,
-                rand(-20, 20), rand(120, 200),
+                rand(-20, 20), rand(80, 140),
                 '#8800FF', 5, 12
               ));
             }
