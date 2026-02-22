@@ -47,146 +47,146 @@ const STATE = {
   PAUSED: 7
 };
 
-// Colors config for pixel art
+// Colors config - Candy Land theme
 const COLORS = {
-  // Goku
-  gokuGiOrange: '#FF6600',
-  gokuGiOrangeDark: '#CC5200',
-  gokuGiOrangeLight: '#FF8833',
-  gokuBelt: '#2244AA',
-  gokuBeltLight: '#3366CC',
-  gokuSkin: '#FFD3A8',
-  gokuSkinShadow: '#E0A870',
-  gokuHairBlack: '#111111',
-  gokuHairHighlight: '#333333',
-  gokuBoots: '#2244AA',
-  gokuBootsLight: '#3366CC',
-  gokuWristband: '#2244AA',
+  // Goku (brighter, more saturated)
+  gokuGiOrange: '#FF7722',
+  gokuGiOrangeDark: '#DD5500',
+  gokuGiOrangeLight: '#FFAA55',
+  gokuBelt: '#4466DD',
+  gokuBeltLight: '#6688FF',
+  gokuSkin: '#FFDDBB',
+  gokuSkinShadow: '#EEBB88',
+  gokuHairBlack: '#222222',
+  gokuHairHighlight: '#444444',
+  gokuBoots: '#4466DD',
+  gokuBootsLight: '#6688FF',
+  gokuWristband: '#4466DD',
   gokuEyeWhite: '#FFFFFF',
-  gokuEyePupil: '#111111',
+  gokuEyePupil: '#222222',
 
-  // Nimbus Cloud
-  cloudYellow: '#FFE44D',
-  cloudYellowLight: '#FFF080',
-  cloudYellowDark: '#DDBB22',
-  cloudTrail: '#FFF8CC',
+  // Nimbus Cloud (brighter golden)
+  cloudYellow: '#FFEE66',
+  cloudYellowLight: '#FFF8AA',
+  cloudYellowDark: '#EECC33',
+  cloudTrail: '#FFFADD',
 
-  // Ki / Energy
-  kiBlue: '#44AAFF',
-  kiBlueBright: '#88CCFF',
+  // Candy Attacks (replaces Ki/Energy)
+  kiBlue: '#CC8844',       // cookie brown
+  kiBlueBright: '#DDAA66',
   kiBlueCore: '#FFFFFF',
   kiYellow: '#FFEE44',
   kiYellowBright: '#FFFF88',
-  kamehamehaBlue: '#4488FF',
-  kamehamehaCoreWhite: '#EEEEFF',
+  kamehamehaBlue: '#FF66AA',    // rainbow candy pink
+  kamehamehaCoreWhite: '#FFFFFF',
   spiritBombWhite: '#FFFFFF',
-  spiritBombBlue: '#88BBFF',
-  spiritBombGlow: '#AADDFF',
+  spiritBombBlue: '#FF88CC',    // lollipop pink
+  spiritBombGlow: '#FFAADD',
 
-  // Aura
+  // Aura (candy sparkle)
   auraSuperYellow: '#FFD700',
-  auraChargeBlue: '#66BBFF',
+  auraChargeBlue: '#FF88BB',   // pink candy charge
   auraWhite: '#FFFFFF',
 
-  // Enemies - Level 1 (Red Ribbon)
-  rrSoldierGreen: '#556B2F',
-  rrSoldierHelmet: '#8B0000',
-  rrRobotGray: '#888888',
-  rrRobotDark: '#555555',
-  rrRobotRed: '#CC0000',
-  rrNinjaPurple: '#4B0082',
-  rrNinjaDark: '#2D004F',
+  // Enemies - Level 1 (Candy Field creatures)
+  rrSoldierGreen: '#CC8844',   // gingerbread brown
+  rrSoldierHelmet: '#FFFFFF',  // white icing
+  rrRobotGray: '#FFAA77',     // donut glaze
+  rrRobotDark: '#DD7744',     // donut body
+  rrRobotRed: '#FF66AA',      // pink sprinkle
+  rrNinjaPurple: '#FF4466',   // jellybean red
+  rrNinjaDark: '#DD2244',
 
-  // Enemies - Level 2 (Namek / Frieza)
-  friezaSoldierPurple: '#9944CC',
-  friezaArmorWhite: '#EEEEEE',
-  friezaArmorBrown: '#886644',
-  dodoriaPink: '#FF77AA',
-  dodoriaPinkDark: '#CC4488',
-  ginyuPurple: '#7722CC',
-  ginyuBodyBlack: '#222222',
+  // Enemies - Level 2 (Chocolate Kingdom creatures)
+  friezaSoldierPurple: '#FFCC44',  // candy corn yellow
+  friezaArmorWhite: '#FFFFFF',     // candy corn white tip
+  friezaArmorBrown: '#FF8822',     // candy corn orange
+  dodoriaPink: '#884422',          // chocolate truffle
+  dodoriaPinkDark: '#663311',      // dark chocolate
+  ginyuPurple: '#FF44AA',         // lollipop pink
+  ginyuBodyBlack: '#44DD44',      // lollipop green
 
-  // Enemies - Level 3 (Dark Realm)
-  cellGreen: '#228B22',
-  cellGreenDark: '#145214',
-  cellSpots: '#111111',
-  darkCloneShadow: '#220044',
-  darkCloneGlow: '#8800FF',
-  buuPink: '#FFB6C1',
-  buuPinkDark: '#FF8899',
+  // Enemies - Level 3 (Sugar Crystal creatures)
+  cellGreen: '#44DD66',           // sour gummy green
+  cellGreenDark: '#22AA44',
+  cellSpots: '#FFEE44',           // gummy highlight
+  darkCloneShadow: '#886644',     // shadow cookie brown
+  darkCloneGlow: '#FFAA44',       // golden glow
+  buuPink: '#FFAACC',             // bubblegum pink
+  buuPinkDark: '#FF88AA',
 
-  // Bosses
-  bossLevel1Core: '#FF0000',
-  bossLevel1Metal: '#AAAAAA',
-  bossLevel1MetalDark: '#666666',
-  bossLevel2Purple: '#7700BB',
-  bossLevel2PurpleDark: '#440066',
-  bossLevel2Tail: '#550088',
-  bossLevel3Dark: '#110022',
-  bossLevel3Eyes: '#FF0044',
-  bossLevel3Glow: '#CC00FF',
+  // Bosses (candy themed)
+  bossLevel1Core: '#FF4488',      // cherry on cupcake
+  bossLevel1Metal: '#FFD4E8',     // pink frosting
+  bossLevel1MetalDark: '#FFBBCC', // cupcake wrapper
+  bossLevel2Purple: '#88DD44',    // candy dragon green
+  bossLevel2PurpleDark: '#66AA22',
+  bossLevel2Tail: '#FF4444',      // licorice red
+  bossLevel3Dark: '#FFFFEE',      // cake white
+  bossLevel3Eyes: '#FF4488',      // cherry eyes
+  bossLevel3Glow: '#FFD700',      // golden candle glow
 
-  // Backgrounds - Level 1 (Earth)
-  skyBlue: '#87CEEB',
-  skyBlueDark: '#5DADE2',
-  mountainGreen: '#2E7D32',
-  mountainGreenLight: '#4CAF50',
-  hillGreen: '#388E3C',
-  groundBrown: '#6D4C41',
-  buildingGray: '#9E9E9E',
+  // Backgrounds - Level 1 (Candy Fields)
+  skyBlue: '#FFD4E8',            // pink candy sky
+  skyBlueDark: '#FFBBDD',
+  mountainGreen: '#88DD88',      // gumdrop green
+  mountainGreenLight: '#AAFFAA',
+  hillGreen: '#FF88AA',          // candy cane pink hills
+  groundBrown: '#DDAA77',        // cookie ground
+  buildingGray: '#FFCC88',       // wafer buildings
 
-  // Backgrounds - Level 2 (Namek)
-  namekSkyGreen: '#77BB77',
-  namekSkyGreenDark: '#558855',
-  namekGroundBlue: '#557788',
-  namekGroundTeal: '#448877',
-  namekRockBrown: '#887755',
-  namekWater: '#4488AA',
+  // Backgrounds - Level 2 (Chocolate Kingdom)
+  namekSkyGreen: '#FFCC88',      // warm golden sky
+  namekSkyGreenDark: '#EEAA66',
+  namekGroundBlue: '#664422',    // chocolate ground
+  namekGroundTeal: '#553311',
+  namekRockBrown: '#AA7744',     // wafer towers
+  namekWater: '#884422',         // chocolate river
 
-  // Backgrounds - Level 3 (Dark Realm)
-  voidWhite: '#F8F8F8',
-  darkRealmBg: '#0A0015',
-  darkRealmPurple: '#1A0030',
-  nebulaBlue: '#1133AA',
-  nebulaPink: '#AA1166',
+  // Backgrounds - Level 3 (Sugar Crystal Realm)
+  voidWhite: '#EEEEFF',
+  darkRealmBg: '#DDEEFF',        // light crystal blue
+  darkRealmPurple: '#CCDDFF',
+  nebulaBlue: '#AACCFF',         // blue crystal
+  nebulaPink: '#FFAADD',         // pink crystal
   starWhite: '#FFFFFF',
-  starYellow: '#FFEE88',
+  starYellow: '#FFD700',
 
-  // UI / HUD
-  hpGreen: '#44DD44',
-  hpYellow: '#DDDD22',
-  hpRed: '#DD2222',
-  hpBarBg: '#333333',
-  hpBarBorder: '#FFFFFF',
-  kiBarBlue: '#2288FF',
-  kiBarGlow: '#88CCFF',
-  kiBarBg: '#222244',
-  kiBarBorder: '#AABBFF',
+  // UI / HUD (candy themed)
+  hpGreen: '#FF6688',            // cookie jar red
+  hpYellow: '#FFAA44',
+  hpRed: '#FF2244',
+  hpBarBg: '#FFE4CC',
+  hpBarBorder: '#FF88AA',
+  kiBarBlue: '#FF88CC',          // candy meter pink
+  kiBarGlow: '#FFAADD',
+  kiBarBg: '#FFE4F0',
+  kiBarBorder: '#FF88AA',
   scoreGold: '#FFD700',
   uiWhite: '#FFFFFF',
-  uiBlack: '#000000',
-  uiShadow: '#000000',
-  bossHpRed: '#CC0000',
-  bossHpBg: '#440000',
+  uiBlack: '#442200',
+  uiShadow: '#884422',
+  bossHpRed: '#FF4466',
+  bossHpBg: '#FFD4DD',
 
-  // Effects
-  explosionOrange: '#FF6600',
-  explosionYellow: '#FFCC00',
-  explosionRed: '#FF2200',
+  // Effects (candy pops & sprinkles)
+  explosionOrange: '#FFAA44',    // caramel pop
+  explosionYellow: '#FFEE66',    // lemon drop
+  explosionRed: '#FF66AA',       // strawberry burst
   explosionWhite: '#FFFFFF',
   hitWhite: '#FFFFFF',
   flashWhite: '#FFFFFF',
-  flashRed: '#FF000066',
+  flashRed: '#FF88AA66',
 
-  // Powerups
-  senzuGreen: '#22CC22',
-  senzuGreenLight: '#66EE66',
-  kiOrbBlue: '#4488FF',
-  kiOrbGlow: '#88CCFF',
-  dragonBallOrange: '#FF8800',
-  dragonBallStar: '#CC0000',
-  speedBoostYellow: '#FFDD00',
-  speedBoostGlow: '#FFFF88'
+  // Powerups (candy items)
+  senzuGreen: '#FF88AA',         // cupcake pink
+  senzuGreenLight: '#FFAACC',
+  kiOrbBlue: '#FF4444',          // candy cane red
+  kiOrbGlow: '#FF8888',
+  dragonBallOrange: '#FFD700',   // golden cookie
+  dragonBallStar: '#FFAA00',
+  speedBoostYellow: '#FFAADD',   // cotton candy pink
+  speedBoostGlow: '#FFCCEE'
 };
 
 // ============================================================
