@@ -3150,7 +3150,7 @@ class RedRibbonSoldier extends Enemy {
     this.shootTimer -= dt;
     if (this.shootTimer <= 0) {
       this.shootTimer = this.shootInterval;
-      enemyProjectiles.push(new EnemyProjectile(this.x, this.y + 10, -80, 0, '#FF88CC', 3, 8));
+      enemyProjectiles.push(new EnemyProjectile(this.x, this.y + 10, -80, 0, '#FF88CC', 3, 5));
       playSound('kiBlast');
     }
     if (this.x < -40) this.alive = false;
@@ -3203,7 +3203,7 @@ class BattleRobot extends Enemy {
     this.shootTimer -= dt;
     if (this.shootTimer <= 0) {
       this.shootTimer = 2;
-      enemyProjectiles.push(new EnemyProjectile(this.x + 16, this.y + 32, 0, 70, '#88DDFF', 4, 10));
+      enemyProjectiles.push(new EnemyProjectile(this.x + 16, this.y + 32, 0, 70, '#88DDFF', 4, 6));
     }
     if (this.x < -40) this.alive = false;
   }
