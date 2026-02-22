@@ -1934,12 +1934,12 @@ class Player {
     this.moveSpeed = 200;    // pixels per second
 
     // Stats
-    this.hp = 100;
-    this.maxHP = 100;
+    this.hp = 150;
+    this.maxHP = 150;
     this.ki = 0;
     this.maxKi = 100;
-    this.kiRegenRate = 5;    // per second
-    this.lives = 3;
+    this.kiRegenRate = 8;    // per second
+    this.lives = 4;
     this.score = 0;
 
     // State management
@@ -3297,7 +3297,7 @@ class FriezaSoldier extends Enemy {
       this.shootTimer = 2 + Math.random();
       var dx = player.x - this.x; var dy = player.y - this.y;
       var dist = Math.sqrt(dx*dx+dy*dy) || 1;
-      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+17, (dx/dist)*100, (dy/dist)*100, '#FFCC44', 4, 12));
+      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+17, (dx/dist)*100, (dy/dist)*100, '#FFCC44', 4, 7));
     }
     if (this.x < -40) this.alive = false;
   }
@@ -3467,7 +3467,7 @@ class CellJunior extends Enemy {
         this.shootTimer = 1;
         var dx = player.x - this.x; var dy = player.y - this.y;
         var dist = Math.sqrt(dx*dx+dy*dy) || 1;
-        enemyProjectiles.push(new EnemyProjectile(this.x, this.y+11, (dx/dist)*110, (dy/dist)*110, '#88FF88', 4, 15));
+        enemyProjectiles.push(new EnemyProjectile(this.x, this.y+11, (dx/dist)*110, (dy/dist)*110, '#88FF88', 4, 8));
       }
     }
     if (this.x < -40) this.alive = false;
@@ -3526,9 +3526,9 @@ class DarkClone extends Enemy {
     this.shootTimer -= dt;
     if (this.shootTimer <= 0) {
       this.shootTimer = 1.5 + Math.random() * 0.5;
-      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+19, -120, 0, '#FFAA44', 5, 15));
-      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+19, -110, -40, '#FFAA44', 4, 12));
-      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+19, -110, 40, '#FFAA44', 4, 12));
+      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+19, -120, 0, '#FFAA44', 5, 8));
+      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+19, -110, -40, '#FFAA44', 4, 7));
+      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+19, -110, 40, '#FFAA44', 4, 7));
     }
     if (this.x < -40) this.alive = false;
   }
@@ -3738,7 +3738,7 @@ class GiantMechRobot extends Boss {
               enemyProjectiles.push(new EnemyProjectile(
                 this.x, this.y + 20 + i * 20,
                 -100 - Math.random()*30, (i-2)*20 + rand(-10,10),
-                '#FF88AA', 5, 15
+                '#FF88AA', 5, 8
               ));
             }
             playSound('kiBlast');
@@ -3781,7 +3781,7 @@ class GiantMechRobot extends Boss {
                 enemyProjectiles.push(new EnemyProjectile(
                   this.x + 48, this.y + this.h,
                   -60 - i * 15, -40 - Math.random()*20,
-                  '#FF88CC', 6, 12
+                  '#FF88CC', 6, 7
                 ));
               }
             }
@@ -3938,9 +3938,9 @@ class AlienTyrant extends Boss {
           if (this.attackDuration > 0.4 && this.attackDuration < 0.5 && player) {
             var dx = player.x - this.x; var dy = player.y + 15 - (this.y + 40);
             var dist = Math.sqrt(dx*dx+dy*dy) || 1;
-            enemyProjectiles.push(new EnemyProjectile(this.x, this.y+40, (dx/dist)*180, (dy/dist)*180, '#FFAA88', 3, 18));
+            enemyProjectiles.push(new EnemyProjectile(this.x, this.y+40, (dx/dist)*180, (dy/dist)*180, '#FFAA88', 3, 10));
             if (this.transformed) {
-              enemyProjectiles.push(new EnemyProjectile(this.x, this.y+50, (dx/dist)*170, (dy/dist)*170, '#FFAA88', 3, 18));
+              enemyProjectiles.push(new EnemyProjectile(this.x, this.y+50, (dx/dist)*170, (dy/dist)*170, '#FFAA88', 3, 10));
             }
             playSound('kiBlast');
           }
@@ -3956,7 +3956,7 @@ class AlienTyrant extends Boss {
               enemyProjectiles.push(new EnemyProjectile(
                 this.x + 20, this.y + 120,
                 Math.cos(angle) * 90, Math.sin(angle) * 90,
-                '#88EEFF', 5, 14
+                '#88EEFF', 5, 8
               ));
             }
             playSound('melee');
@@ -3972,7 +3972,7 @@ class AlienTyrant extends Boss {
             spawnChargeSparkle(this.x - 20, this.y + 30, 50, '#FF6600');
           } else if (this.attackDuration >= 1.5 && this.attackDuration < 1.7) {
             // fire
-            enemyProjectiles.push(new EnemyProjectile(this.x-20, this.y+30, -80, 0, '#FFDD44', 20, 30));
+            enemyProjectiles.push(new EnemyProjectile(this.x-20, this.y+30, -80, 0, '#FFDD44', 20, 18));
             playSound('explosion'); shakeScreen(5);
           }
           if (this.attackDuration > 3) {
@@ -4151,7 +4151,7 @@ class CosmicDemonKing extends Boss {
             var slamCount = this.extraArms ? 6 : 4;
             for (var i = 0; i < slamCount; i++) {
               var sx = rand(50, CANVAS_W - 100);
-              enemyProjectiles.push(new EnemyProjectile(sx, -20, 0, 130, '#FFAADD', 8, 20));
+              enemyProjectiles.push(new EnemyProjectile(sx, -20, 0, 130, '#FFAADD', 8, 12));
             }
             shakeScreen(8); playSound('melee');
           }
@@ -4191,7 +4191,7 @@ class CosmicDemonKing extends Boss {
               enemyProjectiles.push(new EnemyProjectile(
                 rand(30, CANVAS_W - 80), -10,
                 rand(-20, 20), rand(80, 140),
-                '#FFAA44', 5, 12
+                '#FFAA44', 5, 7
               ));
             }
           }
