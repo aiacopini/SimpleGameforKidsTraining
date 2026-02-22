@@ -3285,7 +3285,7 @@ class NinjaAssassin extends Enemy {
 
 class FriezaSoldier extends Enemy {
   constructor(x, y) {
-    super(x, y, 22, 26, 35, 70, 100);
+    super(x, y, 30, 34, 35, 70, 100);
     this.shootTimer = 1 + Math.random() * 2;
   }
   update(dt) {
@@ -3297,28 +3297,50 @@ class FriezaSoldier extends Enemy {
       this.shootTimer = 2 + Math.random();
       var dx = player.x - this.x; var dy = player.y - this.y;
       var dist = Math.sqrt(dx*dx+dy*dy) || 1;
-      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+13, (dx/dist)*100, (dy/dist)*100, '#FFCC44', 4, 12));
+      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+17, (dx/dist)*100, (dy/dist)*100, '#FFCC44', 4, 12));
     }
     if (this.x < -40) this.alive = false;
   }
   draw(ctx) {
-    ctx.fillStyle = this.flashTimer > 0 ? '#FFF' : COLORS.friezaArmorWhite;
-    ctx.fillRect(this.x + 3, this.y + 8, 16, 14);
-    ctx.fillStyle = this.flashTimer > 0 ? '#FFF' : COLORS.friezaSoldierPurple;
-    ctx.fillRect(this.x + 5, this.y + 10, 12, 10);
-    // head
-    ctx.fillStyle = '#88CC88';
-    ctx.beginPath(); ctx.arc(this.x + 11, this.y + 6, 7, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#FF0000';
-    ctx.fillRect(this.x + 8, this.y + 4, 3, 3);
-    ctx.fillRect(this.x + 13, this.y + 4, 3, 3);
+    var fc = this.flashTimer > 0 ? '#FFF' : null;
+    var cx = this.x + 15;
+    // Candy corn triangle - yellow base
+    ctx.fillStyle = fc || '#FFEE44';
+    ctx.beginPath();
+    ctx.moveTo(cx - 14, this.y + 34);
+    ctx.lineTo(cx + 14, this.y + 34);
+    ctx.lineTo(cx, this.y);
+    ctx.closePath(); ctx.fill();
+    // Orange middle band
+    ctx.fillStyle = fc || '#FF8822';
+    ctx.beginPath();
+    ctx.moveTo(cx - 10, this.y + 24);
+    ctx.lineTo(cx + 10, this.y + 24);
+    ctx.lineTo(cx + 5, this.y + 12);
+    ctx.lineTo(cx - 5, this.y + 12);
+    ctx.closePath(); ctx.fill();
+    // White tip at top
+    ctx.fillStyle = fc || '#FFFFFF';
+    ctx.beginPath();
+    ctx.moveTo(cx - 5, this.y + 12);
+    ctx.lineTo(cx + 5, this.y + 12);
+    ctx.lineTo(cx, this.y);
+    ctx.closePath(); ctx.fill();
+    // Small dot eyes
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.arc(cx - 4, this.y + 20, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 4, this.y + 20, 2, 0, Math.PI * 2); ctx.fill();
+    // Cute little smile
+    ctx.strokeStyle = '#AA5500';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx, this.y + 24, 3, 0.2, Math.PI - 0.2); ctx.stroke();
     this.drawHealthBar(ctx);
   }
 }
 
 class BruteWarrior extends Enemy {
   constructor(x, y) {
-    super(x, y, 30, 34, 80, 120, 150);
+    super(x, y, 40, 44, 80, 120, 150);
     this.charging = false; this.chargeTimer = 2;
   }
   update(dt) {
@@ -3335,28 +3357,47 @@ class BruteWarrior extends Enemy {
     if (this.x < -50) this.alive = false;
   }
   draw(ctx) {
-    ctx.fillStyle = this.flashTimer > 0 ? '#FFF' : COLORS.dodoriaPink;
-    ctx.beginPath(); ctx.arc(this.x + 15, this.y + 10, 12, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = this.flashTimer > 0 ? '#FFF' : COLORS.dodoriaPinkDark;
-    ctx.fillRect(this.x + 3, this.y + 14, 24, 20);
-    // spikes
-    ctx.fillStyle = '#FFCC00';
-    for (var i = 0; i < 3; i++) {
-      ctx.fillRect(this.x + 5 + i * 8, this.y, 4, 6);
-    }
-    ctx.fillStyle = '#111';
-    ctx.fillRect(this.x + 8, this.y + 7, 4, 3);
-    ctx.fillRect(this.x + 18, this.y + 7, 4, 3);
+    var fc = this.flashTimer > 0 ? '#FFF' : null;
+    var cx = this.x + 20; var cy = this.y + 22;
+    // Large chocolate ball body
+    ctx.fillStyle = fc || '#664422';
+    ctx.beginPath(); ctx.arc(cx, cy, 20, 0, Math.PI * 2); ctx.fill();
+    // Lighter chocolate highlight
+    ctx.fillStyle = fc || '#886644';
+    ctx.beginPath(); ctx.arc(cx - 5, cy - 6, 10, 0, Math.PI * 2); ctx.fill();
+    // Cocoa dust specks
+    ctx.fillStyle = '#AA8866';
+    ctx.fillRect(cx - 10, cy - 12, 2, 2);
+    ctx.fillRect(cx + 6, cy - 10, 2, 2);
+    ctx.fillRect(cx - 3, cy - 14, 2, 2);
+    ctx.fillRect(cx + 10, cy - 6, 2, 2);
+    ctx.fillRect(cx - 12, cy - 4, 2, 2);
+    // Angry cute face - eyes
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(cx - 6, cy - 2, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 6, cy - 2, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.arc(cx - 5, cy - 1, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 7, cy - 1, 2, 0, Math.PI * 2); ctx.fill();
+    // Angry eyebrows
+    ctx.strokeStyle = '#442200';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(cx - 10, cy - 7); ctx.lineTo(cx - 3, cy - 5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx + 10, cy - 7); ctx.lineTo(cx + 3, cy - 5); ctx.stroke();
+    // Grumpy mouth
+    ctx.strokeStyle = '#442200';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx, cy + 6, 4, Math.PI + 0.3, -0.3); ctx.stroke();
     this.drawHealthBar(ctx);
   }
 }
 
 class GinyuStriker extends Enemy {
   constructor(x, y) {
-    super(x, y, 20, 26, 30, 100, 125);
+    super(x, y, 28, 34, 30, 100, 125);
     this.pattern = Math.floor(Math.random() * 3);
     this.patternTimer = 0;
-    this.bodyColor = ['#CC2222', '#2222CC', '#22CC22'][this.pattern];
+    this.bodyColor = ['#FF4488', '#44CCFF', '#88FF44'][this.pattern];
   }
   update(dt) {
     super.update(dt);
@@ -3369,17 +3410,32 @@ class GinyuStriker extends Enemy {
     if (this.x < -40) this.alive = false;
   }
   draw(ctx) {
-    ctx.fillStyle = this.flashTimer > 0 ? '#FFF' : this.bodyColor;
-    ctx.fillRect(this.x + 3, this.y + 8, 14, 18);
-    ctx.fillStyle = this.flashTimer > 0 ? '#FFF' : COLORS.friezaArmorWhite;
-    ctx.fillRect(this.x + 5, this.y + 8, 10, 8);
-    // head
-    ctx.fillStyle = this.flashTimer > 0 ? '#FFF' : '#DDBB88';
-    ctx.beginPath(); ctx.arc(this.x + 10, this.y + 5, 6, 0, Math.PI * 2); ctx.fill();
-    // horns
-    ctx.fillStyle = this.bodyColor;
-    ctx.fillRect(this.x + 3, this.y - 2, 3, 6);
-    ctx.fillRect(this.x + 14, this.y - 2, 3, 6);
+    var fc = this.flashTimer > 0 ? '#FFF' : null;
+    var cx = this.x + 14; var cy = this.y + 12;
+    // Lollipop stick (white)
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(cx - 2, cy + 6, 4, 18);
+    // Circular candy top
+    ctx.fillStyle = fc || this.bodyColor;
+    ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI * 2); ctx.fill();
+    // White swirl stripe
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4, 0, Math.PI * 1.5); ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx, cy, 8, Math.PI * 0.5, Math.PI * 2); ctx.stroke();
+    // Cute face on candy
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(cx - 4, cy - 2, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 4, cy - 2, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.arc(cx - 4, cy - 2, 1.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 4, cy - 2, 1.2, 0, Math.PI * 2); ctx.fill();
+    // Happy mouth
+    ctx.strokeStyle = '#AA2255';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx, cy + 3, 3, 0.2, Math.PI - 0.2); ctx.stroke();
     this.drawHealthBar(ctx);
   }
 }
@@ -3388,7 +3444,7 @@ class GinyuStriker extends Enemy {
 
 class CellJunior extends Enemy {
   constructor(x, y) {
-    super(x, y, 18, 22, 50, 120, 150);
+    super(x, y, 26, 30, 50, 120, 150);
     this.attackMode = 'ki'; this.switchTimer = 1.5;
     this.shootTimer = 0.8;
   }
@@ -3417,24 +3473,47 @@ class CellJunior extends Enemy {
     if (this.x < -40) this.alive = false;
   }
   draw(ctx) {
-    ctx.fillStyle = this.flashTimer > 0 ? '#FFF' : COLORS.cellGreen;
-    ctx.fillRect(this.x + 2, this.y + 6, 14, 16);
-    ctx.fillStyle = this.flashTimer > 0 ? '#FFF' : COLORS.cellGreenDark;
-    ctx.beginPath(); ctx.arc(this.x + 9, this.y + 5, 7, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#FF44FF';
-    ctx.fillRect(this.x + 5, this.y + 3, 3, 3);
-    ctx.fillRect(this.x + 11, this.y + 3, 3, 3);
-    // wings
-    ctx.fillStyle = COLORS.cellSpots;
-    ctx.fillRect(this.x - 2, this.y + 8, 4, 10);
-    ctx.fillRect(this.x + 16, this.y + 8, 4, 10);
+    var fc = this.flashTimer > 0 ? '#FFF' : null;
+    var cx = this.x + 13; var cy = this.y + 16;
+    // Gummy bear body (rounded oval)
+    ctx.fillStyle = fc || '#44DD66';
+    ctx.beginPath(); ctx.ellipse(cx, cy, 11, 14, 0, 0, Math.PI * 2); ctx.fill();
+    // Round ears on top
+    ctx.fillStyle = fc || '#44DD66';
+    ctx.beginPath(); ctx.arc(cx - 7, this.y + 3, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 7, this.y + 3, 5, 0, Math.PI * 2); ctx.fill();
+    // Head
+    ctx.beginPath(); ctx.arc(cx, this.y + 8, 8, 0, Math.PI * 2); ctx.fill();
+    // Lighter belly patch
+    ctx.fillStyle = fc || '#88FFAA';
+    ctx.beginPath(); ctx.ellipse(cx, cy + 3, 6, 7, 0, 0, Math.PI * 2); ctx.fill();
+    // Sour face - squinting eyes
+    ctx.fillStyle = '#000';
+    ctx.fillRect(cx - 5, this.y + 6, 4, 2);
+    ctx.fillRect(cx + 1, this.y + 6, 4, 2);
+    // Puckered mouth (sour!)
+    ctx.strokeStyle = '#228833';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx, this.y + 11, 2.5, 0, Math.PI * 2); ctx.stroke();
+    // Little arms
+    ctx.fillStyle = fc || '#44DD66';
+    ctx.beginPath(); ctx.ellipse(this.x + 1, cy - 2, 4, 3, -0.4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(this.x + 25, cy - 2, 4, 3, 0.4, 0, Math.PI * 2); ctx.fill();
+    // Little feet
+    ctx.beginPath(); ctx.ellipse(cx - 5, this.y + 29, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx + 5, this.y + 29, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
+    // Sugar coating sparkles
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(cx - 8, cy - 5, 2, 2);
+    ctx.fillRect(cx + 5, cy - 8, 2, 2);
+    ctx.fillRect(cx - 3, cy + 6, 2, 2);
     this.drawHealthBar(ctx);
   }
 }
 
 class DarkClone extends Enemy {
   constructor(x, y) {
-    super(x, y, 24, 30, 60, 70, 200);
+    super(x, y, 32, 38, 60, 70, 200);
     this.shootTimer = 1.5;
   }
   update(dt) {
@@ -3447,37 +3526,52 @@ class DarkClone extends Enemy {
     this.shootTimer -= dt;
     if (this.shootTimer <= 0) {
       this.shootTimer = 1.5 + Math.random() * 0.5;
-      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+15, -120, 0, '#FFAA44', 5, 15));
-      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+15, -110, -40, '#FFAA44', 4, 12));
-      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+15, -110, 40, '#FFAA44', 4, 12));
+      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+19, -120, 0, '#FFAA44', 5, 15));
+      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+19, -110, -40, '#FFAA44', 4, 12));
+      enemyProjectiles.push(new EnemyProjectile(this.x, this.y+19, -110, 40, '#FFAA44', 4, 12));
     }
     if (this.x < -40) this.alive = false;
   }
   draw(ctx) {
+    var fc = this.flashTimer > 0 ? '#FFF' : null;
+    var cx = this.x + 16; var cy = this.y + 19;
     ctx.save();
-    ctx.globalAlpha = 0.7;
-    // dark silhouette of goku
-    ctx.fillStyle = this.flashTimer > 0 ? '#FFF' : COLORS.darkCloneShadow;
-    // body
-    ctx.fillRect(this.x + 4, this.y + 10, 16, 16);
-    // head
-    ctx.beginPath(); ctx.arc(this.x + 12, this.y + 7, 8, 0, Math.PI * 2); ctx.fill();
-    // spiky hair
+    ctx.globalAlpha = 0.85;
+    // Dark cookie body (large circle)
+    ctx.fillStyle = fc || '#553322';
+    ctx.beginPath(); ctx.arc(cx, cy, 16, 0, Math.PI * 2); ctx.fill();
+    // Cookie edge detail (slightly lighter)
+    ctx.strokeStyle = '#664433';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(cx, cy, 15, 0, Math.PI * 2); ctx.stroke();
+    // Spiky hair silhouette on top (shadow cookie crumbles)
+    ctx.fillStyle = fc || '#553322';
     ctx.beginPath();
-    ctx.moveTo(this.x + 6, this.y + 2); ctx.lineTo(this.x + 3, this.y - 8);ctx.lineTo(this.x + 10, this.y);
-    ctx.moveTo(this.x + 10, this.y); ctx.lineTo(this.x + 10, this.y - 12); ctx.lineTo(this.x + 15, this.y);
-    ctx.moveTo(this.x + 14, this.y + 1); ctx.lineTo(this.x + 18, this.y - 8); ctx.lineTo(this.x + 20, this.y + 3);
-    ctx.moveTo(this.x + 18, this.y + 3); ctx.lineTo(this.x + 24, this.y - 4); ctx.lineTo(this.x + 22, this.y + 6);
+    ctx.moveTo(cx - 8, this.y + 6); ctx.lineTo(cx - 12, this.y - 4); ctx.lineTo(cx - 3, this.y + 3);
+    ctx.moveTo(cx - 3, this.y + 3); ctx.lineTo(cx, this.y - 8); ctx.lineTo(cx + 4, this.y + 3);
+    ctx.moveTo(cx + 4, this.y + 3); ctx.lineTo(cx + 8, this.y - 4); ctx.lineTo(cx + 10, this.y + 5);
+    ctx.moveTo(cx + 9, this.y + 5); ctx.lineTo(cx + 14, this.y); ctx.lineTo(cx + 13, this.y + 7);
     ctx.fill();
-    // glow
+    // Golden glow around cookie
     ctx.globalAlpha = 0.3;
-    ctx.fillStyle = COLORS.darkCloneGlow;
-    ctx.beginPath(); ctx.arc(this.x + 12, this.y + 12, 20, 0, Math.PI * 2); ctx.fill();
-    // eyes
+    ctx.fillStyle = '#FFAA44';
+    ctx.beginPath(); ctx.arc(cx, cy, 22, 0, Math.PI * 2); ctx.fill();
+    // Chocolate chip spots
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = '#332211';
+    ctx.beginPath(); ctx.arc(cx - 6, cy - 4, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 5, cy - 2, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx - 2, cy + 5, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 7, cy + 5, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx - 8, cy + 3, 2, 0, Math.PI * 2); ctx.fill();
+    // Cookie chip eyes (lighter, glowing)
     ctx.globalAlpha = 1;
-    ctx.fillStyle = '#FF0044';
-    ctx.fillRect(this.x + 7, this.y + 5, 3, 2);
-    ctx.fillRect(this.x + 14, this.y + 5, 3, 2);
+    ctx.fillStyle = '#FFCC66';
+    ctx.beginPath(); ctx.arc(cx - 5, cy - 6, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 5, cy - 6, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FFE888';
+    ctx.beginPath(); ctx.arc(cx - 5, cy - 6, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 5, cy - 6, 1.5, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
     this.drawHealthBar(ctx);
   }
@@ -3514,20 +3608,35 @@ class BuuBlob extends Enemy {
   draw(ctx) {
     var cx = this.x + this.w/2; var cy = this.y + this.h/2;
     var r = this.w / 2;
-    ctx.fillStyle = this.flashTimer > 0 ? '#FFF' : COLORS.buuPink;
+    var fc = this.flashTimer > 0 ? '#FFF' : null;
+    // Main bubblegum body (bright pink)
+    ctx.fillStyle = fc || '#FF88CC';
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
-    // wobble bumps
-    ctx.fillStyle = this.flashTimer > 0 ? '#FFF' : COLORS.buuPinkDark;
+    // Wobble bumps (lighter pink)
+    ctx.fillStyle = fc || '#FFAADD';
     ctx.beginPath(); ctx.arc(cx - r*0.4, cy - r*0.3, r*0.4, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx + r*0.3, cy + r*0.2, r*0.35, 0, Math.PI * 2); ctx.fill();
-    // face
-    ctx.fillStyle = '#111';
-    ctx.fillRect(cx - 4, cy - 2, 2, 2);
-    ctx.fillRect(cx + 2, cy - 2, 2, 2);
-    // antenna
-    ctx.strokeStyle = COLORS.buuPink;
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(cx, cy - r); ctx.quadraticCurveTo(cx + 10, cy - r - 12, cx + 5, cy - r - 8); ctx.stroke();
+    // Shine highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.beginPath(); ctx.arc(cx - r*0.3, cy - r*0.3, r*0.3, 0, Math.PI * 2); ctx.fill();
+    // Happy eyes
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(cx - r*0.25, cy - r*0.15, r*0.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + r*0.25, cy - r*0.15, r*0.2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#222';
+    ctx.beginPath(); ctx.arc(cx - r*0.2, cy - r*0.1, r*0.1, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + r*0.3, cy - r*0.1, r*0.1, 0, Math.PI * 2); ctx.fill();
+    // Cute smiley mouth
+    ctx.strokeStyle = '#DD4488';
+    ctx.lineWidth = Math.max(1.5, r * 0.1);
+    ctx.beginPath(); ctx.arc(cx, cy + r*0.15, r*0.25, 0.2, Math.PI - 0.2); ctx.stroke();
+    // Bubblegum stretch antenna
+    ctx.strokeStyle = fc || '#FF88CC';
+    ctx.lineWidth = Math.max(2, r * 0.15);
+    ctx.beginPath(); ctx.moveTo(cx, cy - r); ctx.quadraticCurveTo(cx + r*0.8, cy - r - r*0.8, cx + r*0.4, cy - r - r*0.5); ctx.stroke();
+    // Bubble at end of antenna
+    ctx.fillStyle = fc || '#FFAADD';
+    ctx.beginPath(); ctx.arc(cx + r*0.4, cy - r - r*0.5, r*0.2, 0, Math.PI * 2); ctx.fill();
     this.drawHealthBar(ctx);
   }
 }
