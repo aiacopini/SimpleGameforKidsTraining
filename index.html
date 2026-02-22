@@ -1631,7 +1631,7 @@ class KiBlast {
       spawnParticles(
         this.x - this.dir * 4, this.y,
         3,                                       // count
-        { r: 255, g: 255, b: 100 },             // color
+        { r: 204, g: 136, b: 68 },              // color (cookie crumbs)
         1.5,                                     // size
         0.6,                                     // speed
         0.25,                                    // life
@@ -1827,7 +1827,7 @@ class SpiritBomb {
       spawnParticles(
         px, py,
         1,
-        Math.random() > 0.5 ? { r: 200, g: 220, b: 255 } : { r: 255, g: 255, b: 255 },
+        Math.random() > 0.5 ? { r: 255, g: 102, b: 170 } : { r: 255, g: 170, b: 68 },
         2.5,
         1.2,
         0.5,
@@ -1848,36 +1848,42 @@ class SpiritBomb {
 
     ctx.save();
 
-    // Massive outer glow
+    // Massive outer glow (pink candy glow)
     const outerGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, this.radius * 1.8);
-    outerGrad.addColorStop(0, 'rgba(200, 220, 255, 0.15)');
-    outerGrad.addColorStop(0.5, 'rgba(100, 150, 255, 0.08)');
-    outerGrad.addColorStop(1, 'rgba(50, 80, 255, 0)');
+    outerGrad.addColorStop(0, 'rgba(255, 170, 221, 0.15)');
+    outerGrad.addColorStop(0.5, 'rgba(255, 170, 221, 0.08)');
+    outerGrad.addColorStop(1, 'rgba(255, 170, 221, 0)');
     ctx.fillStyle = outerGrad;
     ctx.beginPath();
     ctx.arc(sx, sy, this.radius * 1.8, 0, Math.PI * 2);
     ctx.fill();
 
-    // Swirling bands (rotating arcs)
+    // Swirling bands (rotating arcs - pink/orange lollipop)
     for (let i = 0; i < 4; i++) {
       const a = this.swirlAngle + (Math.PI / 2) * i;
-      ctx.strokeStyle = `rgba(150, 200, 255, ${0.3 + 0.1 * Math.sin(this.age * 6 + i)})`;
+      ctx.strokeStyle = i % 2 === 0
+        ? `rgba(255, 102, 170, ${0.3 + 0.1 * Math.sin(this.age * 6 + i)})`
+        : `rgba(255, 170, 68, ${0.3 + 0.1 * Math.sin(this.age * 6 + i)})`;
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(sx, sy, this.radius * 0.7, a, a + Math.PI * 0.6);
       ctx.stroke();
     }
 
-    // Main sphere gradient
+    // Main sphere gradient (pink and orange lollipop)
     const mainGrad = ctx.createRadialGradient(sx - this.radius * 0.2, sy - this.radius * 0.2, 0, sx, sy, this.radius);
     mainGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-    mainGrad.addColorStop(0.3, 'rgba(200, 230, 255, 0.85)');
-    mainGrad.addColorStop(0.7, 'rgba(100, 160, 255, 0.6)');
-    mainGrad.addColorStop(1, 'rgba(60, 100, 255, 0.3)');
+    mainGrad.addColorStop(0.3, 'rgba(255, 102, 170, 0.85)');
+    mainGrad.addColorStop(0.7, 'rgba(255, 170, 68, 0.6)');
+    mainGrad.addColorStop(1, 'rgba(255, 102, 170, 0.3)');
     ctx.fillStyle = mainGrad;
     ctx.beginPath();
     ctx.arc(sx, sy, this.radius, 0, Math.PI * 2);
     ctx.fill();
+
+    // Lollipop stick
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(sx - 2, sy + this.radius, 4, 20);
 
     // Bright white core
     const coreGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, this.radius * 0.35);
@@ -1903,8 +1909,8 @@ class SpiritBomb {
   explode() {
     // Huge explosion effect
     spawnParticles(this.x, this.y, 60, { r: 255, g: 255, b: 255 }, 6, 5, 1.0, true);
-    spawnParticles(this.x, this.y, 40, { r: 100, g: 180, b: 255 }, 5, 4, 0.8, true);
-    spawnParticles(this.x, this.y, 30, { r: 200, g: 220, b: 255 }, 4, 3, 0.6, true);
+    spawnParticles(this.x, this.y, 40, { r: 255, g: 102, b: 170 }, 5, 4, 0.8, true);
+    spawnParticles(this.x, this.y, 30, { r: 255, g: 170, b: 68 }, 4, 3, 0.6, true);
     shakeScreen(20, 0.6);
     playSound('spiritBombHit');
     this.alive = false;
@@ -1923,8 +1929,8 @@ class Player {
     this.vy = 0;
     this.w = 48;             // Goku sprite width
     this.h = 56;             // Goku sprite height
-    this.cloudW = 56;        // nimbus cloud width
-    this.cloudH = 22;        // nimbus cloud height
+    this.cloudW = 78;        // nimbus cloud width (scaled up ~40%)
+    this.cloudH = 31;        // nimbus cloud height (scaled up ~40%)
     this.moveSpeed = 200;    // pixels per second
 
     // Stats
@@ -2411,24 +2417,32 @@ class Player {
     // Draw Nimbus Cloud
     this.drawCloud(ctx, sx + this.w / 2, cloudY);
 
-    // Draw melee hitbox effect
+    // Draw melee hitbox effect (candy cane stripes)
     if (this.meleeActive) {
       const mhb = this.getMeleeHitbox();
       if (mhb) {
         ctx.save();
-        ctx.globalAlpha = 0.4;
-        ctx.fillStyle = '#ffffff';
-        // Swoosh arc effect
+        // Swoosh arc effect with candy cane red/white stripes
         const arcX = mhb.x - camera.x + mhb.w / 2;
         const arcY = mhb.y + mhb.h / 2;
-        ctx.beginPath();
-        if (this.facing === 1) {
-          ctx.arc(arcX - 12, arcY, 18, -Math.PI * 0.4, Math.PI * 0.4);
-        } else {
-          ctx.arc(arcX + 12, arcY, 18, Math.PI * 0.6, Math.PI * 1.4);
+        const stripeColors = ['#FF4444', '#FFFFFF', '#FF4444', '#FFFFFF', '#FF4444'];
+        const arcStart = this.facing === 1 ? -Math.PI * 0.4 : Math.PI * 0.6;
+        const arcEnd = this.facing === 1 ? Math.PI * 0.4 : Math.PI * 1.4;
+        const arcCenter = this.facing === 1 ? arcX - 12 : arcX + 12;
+        const arcSpan = arcEnd - arcStart;
+        const stripeArc = arcSpan / stripeColors.length;
+        for (let si = 0; si < stripeColors.length; si++) {
+          ctx.beginPath();
+          ctx.strokeStyle = stripeColors[si];
+          ctx.lineWidth = 3;
+          ctx.globalAlpha = 0.5;
+          ctx.arc(arcCenter, arcY, 18, arcStart + stripeArc * si, arcStart + stripeArc * (si + 1));
+          ctx.stroke();
         }
-        ctx.stroke();
-        ctx.globalAlpha = 0.2;
+        ctx.globalAlpha = 0.15;
+        ctx.fillStyle = '#FF4444';
+        ctx.beginPath();
+        ctx.arc(arcCenter, arcY, 18, arcStart, arcEnd);
         ctx.fill();
         ctx.restore();
       }
@@ -2450,53 +2464,72 @@ class Player {
     // Shadow underneath
     ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
     ctx.beginPath();
-    ctx.ellipse(cx, cy + 10, 22 * stretch, 5 * squash, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx, cy + 14, 31 * stretch, 7 * squash, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Cloud base color
     const cloudColor = '#FFD54F';       // golden yellow
     const cloudLight = '#FFECB3';       // lighter highlight
     const cloudDark = '#FFC107';        // darker shadow
+    const cloudBright = '#FFE082';      // extra bright highlight
 
     // Bottom cloud puffs (darker)
     ctx.fillStyle = cloudDark;
     ctx.beginPath();
-    ctx.ellipse(cx - 10 * stretch, cy + 3, 12 * stretch, 7 * squash, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx - 14 * stretch, cy + 4, 17 * stretch, 10 * squash, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.ellipse(cx + 10 * stretch, cy + 3, 12 * stretch, 7 * squash, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx + 14 * stretch, cy + 4, 17 * stretch, 10 * squash, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Extra bottom puff for fluffiness
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + 5, 14 * stretch, 9 * squash, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Main cloud body (middle)
     ctx.fillStyle = cloudColor;
     ctx.beginPath();
-    ctx.ellipse(cx, cy, 18 * stretch, 9 * squash, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx, cy, 25 * stretch, 13 * squash, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Left puff
     ctx.beginPath();
-    ctx.ellipse(cx - 14 * stretch, cy - 1, 10 * stretch, 8 * squash, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx - 20 * stretch, cy - 1, 14 * stretch, 11 * squash, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Right puff
     ctx.beginPath();
-    ctx.ellipse(cx + 14 * stretch, cy - 1, 10 * stretch, 8 * squash, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx + 20 * stretch, cy - 1, 14 * stretch, 11 * squash, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Extra side puffs for fluffier look
+    ctx.fillStyle = cloudBright;
+    ctx.beginPath();
+    ctx.ellipse(cx - 10 * stretch, cy - 3, 12 * stretch, 9 * squash, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx + 10 * stretch, cy - 3, 12 * stretch, 9 * squash, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Top highlights (lighter)
     ctx.fillStyle = cloudLight;
     ctx.beginPath();
-    ctx.ellipse(cx - 4, cy - 4 * squash, 10 * stretch, 5 * squash, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx - 6, cy - 6 * squash, 14 * stretch, 7 * squash, 0, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.beginPath();
-    ctx.ellipse(cx + 8 * stretch, cy - 3 * squash, 7 * stretch, 4 * squash, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx + 11 * stretch, cy - 4 * squash, 10 * stretch, 6 * squash, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Extra top puff for fluffiness
+    ctx.beginPath();
+    ctx.ellipse(cx - 14 * stretch, cy - 5 * squash, 8 * stretch, 5 * squash, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Tiny bright spot (specular)
     ctx.fillStyle = '#FFF9C4';
     ctx.beginPath();
-    ctx.ellipse(cx - 2, cy - 5 * squash, 4 * stretch, 2 * squash, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx - 3, cy - 7 * squash, 6 * stretch, 3 * squash, 0, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.restore();
