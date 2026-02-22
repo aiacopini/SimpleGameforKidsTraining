@@ -764,10 +764,10 @@ function playSound(name) {
     case 'gameOver': {
       // Sad descending tone - minor key descending melody
       var notes = [
-        { f: 392, t: 0.0,  d: 0.35 }, // G4
-        { f: 349, t: 0.3,  d: 0.35 }, // F4
-        { f: 311, t: 0.6,  d: 0.35 }, // Eb4
-        { f: 262, t: 0.9,  d: 0.7 },  // C4 (sustained)
+        { f: 523, t: 0.0,  d: 0.35 }, // C5
+        { f: 466, t: 0.3,  d: 0.35 }, // Bb4
+        { f: 415, t: 0.6,  d: 0.35 }, // Ab4
+        { f: 349, t: 0.9,  d: 0.7 },  // F4 (sustained)
       ];
       for (var i = 0; i < notes.length; i++) {
         var n = notes[i];
@@ -4775,7 +4775,7 @@ function drawHUD(ctx) {
 
   // Ki Bar
   var kiY = hpY + hpH + 4; var kiH = 12;
-  drawPixelText(ctx, 'KI', hpX, kiY, 2, COLORS.kiBarBorder);
+  drawPixelText(ctx, 'CANDY', hpX, kiY, 2, COLORS.kiBarBorder);
   ctx.fillStyle = COLORS.kiBarBg; ctx.fillRect(barX, kiY, hpW, kiH);
   var kiPct = Math.max(0, player.ki / player.maxKi);
   ctx.fillStyle = COLORS.kiBarBlue; ctx.fillRect(barX, kiY, hpW * kiPct, kiH);
@@ -4882,7 +4882,7 @@ function updateIntro(dt) {
 }
 
 function drawLevelIntro(ctx) {
-  ctx.fillStyle = '#000';
+  ctx.fillStyle = '#FFE4F0';
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
   // level number
   drawPixelTextCenteredWithShadow(ctx, 'LEVEL ' + (currentLevel + 1), CANVAS_W/2, 150, 6, '#FFFFFF');
@@ -4893,19 +4893,19 @@ function drawLevelIntro(ctx) {
   // countdown
   var count = Math.ceil(introCountdown - introTimer);
   if (count > 0 && count <= 3) {
-    drawPixelTextCenteredWithShadow(ctx, '' + count, CANVAS_W/2, 350, 8, '#FF4444');
+    drawPixelTextCenteredWithShadow(ctx, '' + count, CANVAS_W/2, 350, 8, '#FF6688');
   } else if (introTimer > introCountdown - 0.5) {
-    drawPixelTextCenteredWithShadow(ctx, 'FIGHT!', CANVAS_W/2, 340, 7, '#FF0000');
-    flash('#FF4400', 0.2);
+    drawPixelTextCenteredWithShadow(ctx, 'FIGHT!', CANVAS_W/2, 340, 7, '#FF4488');
+    flash('#FF88CC', 0.2);
   }
 }
 
 // ---- GAME OVER ----
 
 function drawGameOver(ctx) {
-  ctx.fillStyle = 'rgba(80, 0, 0, 0.85)';
+  ctx.fillStyle = 'rgba(255, 200, 220, 0.9)';
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-  drawPixelTextCenteredWithShadow(ctx, 'GAME OVER', CANVAS_W/2, 160, 7, '#FF2222', '#440000');
+  drawPixelTextCenteredWithShadow(ctx, 'GAME OVER', CANVAS_W/2, 160, 7, '#FF4488', '#993355');
   if (player) {
     drawPixelTextCenteredWithShadow(ctx, 'SCORE: ' + player.score, CANVAS_W/2, 260, 4, '#FFD700');
   }
@@ -4920,7 +4920,7 @@ function drawGameOver(ctx) {
 // ---- VICTORY ----
 
 function drawVictory(ctx) {
-  ctx.fillStyle = 'rgba(30, 20, 0, 0.85)';
+  ctx.fillStyle = 'rgba(255, 240, 220, 0.9)';
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
   // golden glow
   ctx.save(); ctx.globalAlpha = 0.2 + Math.sin(gameAge * 2) * 0.1;
@@ -4945,9 +4945,9 @@ function drawVictory(ctx) {
 // ---- LEVEL COMPLETE ----
 
 function drawLevelComplete(ctx) {
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.fillStyle = 'rgba(255, 220, 240, 0.85)';
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-  drawPixelTextCenteredWithShadow(ctx, 'LEVEL COMPLETE!', CANVAS_W/2, 180, 5, '#44FF44', '#004400');
+  drawPixelTextCenteredWithShadow(ctx, 'LEVEL COMPLETE!', CANVAS_W/2, 180, 5, '#FF88CC', '#993366');
   if (player) {
     drawPixelTextCenteredWithShadow(ctx, 'SCORE: ' + player.score, CANVAS_W/2, 260, 4, '#FFD700');
   }
