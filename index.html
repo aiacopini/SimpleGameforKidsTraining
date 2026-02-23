@@ -2050,7 +2050,13 @@ class Player {
     this.h = 56;             // Goku sprite height
     this.cloudW = 78;        // nimbus cloud width (scaled up ~40%)
     this.cloudH = 31;        // nimbus cloud height (scaled up ~40%)
-    this.moveSpeed = 200;    // pixels per second
+    this.moveSpeed = 200;    // pixels per second (max speed)
+
+    // Smooth movement physics
+    this.acceleration = 800;   // how fast we reach max speed (px/s^2)
+    this.deceleration = 600;   // how fast we slow down when keys released (px/s^2)
+    this.velocityX = 0;        // current smooth velocity X
+    this.velocityY = 0;        // current smooth velocity Y
 
     // Stats
     this.hp = 150;
@@ -2193,28 +2199,73 @@ class Player {
       }
     }
 
-    // ----- Movement -----
-    let mx = 0;
-    let my = 0;
+    // ----- Movement (smooth acceleration/deceleration) -----
+    let inputX = 0;
+    let inputY = 0;
     if (!this.chargingKame && !this.kameFiring) {
-      if (keys.ArrowLeft || keys.left)  { mx = -1; this.facing = -1; }
-      if (keys.ArrowRight || keys.right) { mx = 1;  this.facing = 1; }
-      if (keys.ArrowUp || keys.up)    my = -1;
-      if (keys.ArrowDown || keys.down)  my = 1;
+      if (keys.ArrowLeft || keys.left)  { inputX = -1; this.facing = -1; }
+      if (keys.ArrowRight || keys.right) { inputX = 1;  this.facing = 1; }
+      if (keys.ArrowUp || keys.up)    inputY = -1;
+      if (keys.ArrowDown || keys.down)  inputY = 1;
 
-      // Normalize diagonal movement
-      if (mx !== 0 && my !== 0) {
+      // Normalize diagonal input
+      if (inputX !== 0 && inputY !== 0) {
         const inv = 1 / Math.SQRT2;
-        mx *= inv;
-        my *= inv;
+        inputX *= inv;
+        inputY *= inv;
       }
     }
 
-    this.vx = mx * this.moveSpeed;
-    this.vy = my * this.moveSpeed;
+    // Target velocity based on input
+    const targetVX = inputX * this.moveSpeed;
+    const targetVY = inputY * this.moveSpeed;
 
-    this.x += this.vx * dt * 60;
-    this.y += this.vy * dt * 60;
+    // Smoothly accelerate toward target velocity
+    if (inputX !== 0) {
+      // Accelerate toward target
+      if (this.velocityX < targetVX) {
+        this.velocityX = Math.min(targetVX, this.velocityX + this.acceleration * dt);
+      } else if (this.velocityX > targetVX) {
+        this.velocityX = Math.max(targetVX, this.velocityX - this.acceleration * dt);
+      }
+    } else {
+      // Decelerate to zero
+      if (this.velocityX > 0) {
+        this.velocityX = Math.max(0, this.velocityX - this.deceleration * dt);
+      } else if (this.velocityX < 0) {
+        this.velocityX = Math.min(0, this.velocityX + this.deceleration * dt);
+      }
+    }
+
+    if (inputY !== 0) {
+      if (this.velocityY < targetVY) {
+        this.velocityY = Math.min(targetVY, this.velocityY + this.acceleration * dt);
+      } else if (this.velocityY > targetVY) {
+        this.velocityY = Math.max(targetVY, this.velocityY - this.acceleration * dt);
+      }
+    } else {
+      if (this.velocityY > 0) {
+        this.velocityY = Math.max(0, this.velocityY - this.deceleration * dt);
+      } else if (this.velocityY < 0) {
+        this.velocityY = Math.min(0, this.velocityY + this.deceleration * dt);
+      }
+    }
+
+    // Clamp smooth velocity to max speed (including diagonals)
+    const currentSpeed = Math.sqrt(this.velocityX * this.velocityX + this.velocityY * this.velocityY);
+    if (currentSpeed > this.moveSpeed) {
+      const scale = this.moveSpeed / currentSpeed;
+      this.velocityX *= scale;
+      this.velocityY *= scale;
+    }
+
+    // Store for external use (collision, etc.)
+    this.vx = this.velocityX;
+    this.vy = this.velocityY;
+
+    // Apply movement
+    this.x += this.velocityX * dt;
+    this.y += this.velocityY * dt;
 
     // Bound to screen (relative to camera)
     const leftBound = camera.x + 16;
@@ -2222,19 +2273,20 @@ class Player {
     const topBound = 16;
     const bottomBound = CANVAS_H - 16 - this.h - this.cloudH;
 
-    if (this.x < leftBound) this.x = leftBound;
-    if (this.x > rightBound) this.x = rightBound;
-    if (this.y < topBound) this.y = topBound;
-    if (this.y > bottomBound) this.y = bottomBound;
+    if (this.x < leftBound) { this.x = leftBound; this.velocityX = 0; }
+    if (this.x > rightBound) { this.x = rightBound; this.velocityX = 0; }
+    if (this.y < topBound) { this.y = topBound; this.velocityY = 0; }
+    if (this.y > bottomBound) { this.y = bottomBound; this.velocityY = 0; }
 
     // ----- Determine state for drawing -----
+    const isMoving = Math.abs(this.velocityX) > 10 || Math.abs(this.velocityY) > 10;
     if (this.kameFiring) {
       this.state = 'firing';
     } else if (this.chargingKame) {
       this.state = 'charging';
     } else if (this.attackAnimTimer > 0) {
       // Keep attack state from last attack
-    } else if (mx !== 0 || my !== 0) {
+    } else if (isMoving) {
       this.state = 'moving';
     } else {
       this.state = 'idle';
@@ -2418,6 +2470,10 @@ class Player {
     this.hitStunTimer = this.hitStunDuration;
     this.state = 'hit';
 
+    // Knockback: reduce velocity on hit
+    this.velocityX *= 0.3;
+    this.velocityY *= 0.3;
+
     // Cancel charging
     this.chargingKame = false;
     this.kameChargeTime = 0;
@@ -2468,6 +2524,10 @@ class Player {
     this.ki = 0;
     this.x = camera.x + 120;
     this.y = CANVAS_H / 2;
+    this.velocityX = 0;
+    this.velocityY = 0;
+    this.vx = 0;
+    this.vy = 0;
     this.state = 'idle';
     this.invincible = true;
     this.invincibleTimer = 2.0;   // longer invincibility after respawn
