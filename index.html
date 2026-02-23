@@ -1768,25 +1768,45 @@ class KiBlast {
   draw(ctx) {
     const sx = this.x - camera.x;
     const sy = this.y;
+    const cx = sx + 4;
+    const cy = sy + 4;
 
     ctx.save();
-    // Brown circle (cookie base)
-    ctx.fillStyle = '#CC8844';
+    // Outer glow
+    var glowGrad = ctx.createRadialGradient(cx, cy, 3, cx, cy, 12);
+    glowGrad.addColorStop(0, 'rgba(255,180,100,0.25)');
+    glowGrad.addColorStop(1, 'rgba(255,180,100,0)');
+    ctx.fillStyle = glowGrad;
     ctx.beginPath();
-    ctx.arc(sx + 4, sy + 4, 6, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 12, 0, Math.PI * 2);
     ctx.fill();
 
-    // Darker edge
-    ctx.fillStyle = '#AA6633';
+    // Cookie with radial gradient
+    var cookieGrad = ctx.createRadialGradient(cx - 1, cy - 1, 1, cx, cy, 7);
+    cookieGrad.addColorStop(0, '#DDAA66');
+    cookieGrad.addColorStop(0.6, '#CC8844');
+    cookieGrad.addColorStop(1, '#AA6633');
+    ctx.fillStyle = cookieGrad;
     ctx.beginPath();
-    ctx.arc(sx + 4, sy + 4, 6, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cookie outline
+    ctx.strokeStyle = 'rgba(120,60,20,0.4)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 6, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Chocolate chips (3 small dark dots)
+    // Chocolate chips (rounded)
     ctx.fillStyle = '#553311';
-    ctx.fillRect(sx + 1, sy + 2, 2, 2);
-    ctx.fillRect(sx + 5, sy + 5, 2, 2);
-    ctx.fillRect(sx + 3, sy + 7, 2, 2);
+    ctx.beginPath(); ctx.arc(sx + 2, sy + 3, 1.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx + 6, sy + 6, 1.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx + 4, sy + 8, 1, 0, Math.PI * 2); ctx.fill();
+
+    // Shine highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.beginPath(); ctx.arc(cx - 2, cy - 2, 2, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
 }
@@ -2729,69 +2749,111 @@ class Player {
     ctx.ellipse(cx - 3, cy - 7 * squash, 6 * stretch, 3 * squash, 0, 0, Math.PI * 2);
     ctx.fill();
 
+    // Subtle golden outline around cloud perimeter
+    ctx.strokeStyle = 'rgba(180, 140, 20, 0.2)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 26 * stretch, 14 * squash, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
     ctx.restore();
   }
 
   drawSprite(ctx, x, y, state) {
-    // Goku drawn programmatically with canvas primitives
-    // x, y = top-left of Goku sprite (32x40)
+    // Goku drawn programmatically with canvas primitives - ENHANCED QUALITY
     ctx.save();
 
     const centerX = x + this.w / 2;
     const f = this.facing;   // 1 = right, -1 = left
 
     // Color palette (brighter for visibility)
-    const SKIN = '#FFD699';       // skin tone (brighter)
-    const SKIN_DARK = '#FFC266';  // skin shadow (brighter)
-    const GI_ORANGE = '#FF8C00';  // gi top/bottom (brighter orange)
-    const GI_DARK = '#F57C00';    // gi shadow (brighter)
-    const BELT_BLUE = '#1E88E5';  // belt / wristbands (brighter blue)
-    const HAIR_BLACK = '#1A1A1A'; // hair
-    const BOOT_BLUE = '#1565C0';  // boots (brighter)
-    const WHITE = '#FFFFFF';       // eyes / highlights
+    const SKIN = '#FFD699';
+    const SKIN_DARK = '#F0B060';
+    const SKIN_LIGHT = '#FFE8C0';
+    const GI_ORANGE = '#FF8C00';
+    const GI_DARK = '#E06800';
+    const GI_LIGHT = '#FFA030';
+    const BELT_BLUE = '#1E88E5';
+    const BELT_LIGHT = '#42A5F5';
+    const HAIR_BLACK = '#1A1A1A';
+    const HAIR_HIGHLIGHT = '#3A3A3A';
+    const BOOT_BLUE = '#1565C0';
+    const BOOT_LIGHT = '#1E88E5';
+    const WHITE = '#FFFFFF';
     const EYE_BLACK = '#000000';
+    const OUTLINE = 'rgba(0,0,0,0.25)';
 
-    // ----- Positions reference (scaled up ~40%) -----
-    // Head center
+    // Positions
     const headX = centerX;
     const headY = y + 14;
     const headR = 11;
-
-    // Body
     const bodyTop = y + 25;
     const bodyW = 20;
     const bodyH = 17;
-
-    // Legs
     const legTop = bodyTop + bodyH;
     const legW = 8;
     const legH = 14;
 
-    // ----- DRAW LEGS (behind body) -----
-    // Left leg
-    ctx.fillStyle = GI_ORANGE;
+    // ----- DRAW LEGS -----
+    // Left leg with gradient
+    var legGrad = ctx.createLinearGradient(centerX - 10, 0, centerX - 2, 0);
+    legGrad.addColorStop(0, GI_DARK);
+    legGrad.addColorStop(0.5, GI_ORANGE);
+    legGrad.addColorStop(1, GI_LIGHT);
+    ctx.fillStyle = legGrad;
     ctx.fillRect(centerX - 10, legTop, legW, legH);
     // Right leg
+    var legGrad2 = ctx.createLinearGradient(centerX + 2, 0, centerX + 10, 0);
+    legGrad2.addColorStop(0, GI_DARK);
+    legGrad2.addColorStop(0.5, GI_ORANGE);
+    legGrad2.addColorStop(1, GI_LIGHT);
+    ctx.fillStyle = legGrad2;
     ctx.fillRect(centerX + 2, legTop, legW, legH);
+    // Knee lines
+    ctx.strokeStyle = GI_DARK;
+    ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.moveTo(centerX - 9, legTop + 7); ctx.lineTo(centerX - 3, legTop + 7); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(centerX + 3, legTop + 7); ctx.lineTo(centerX + 9, legTop + 7); ctx.stroke();
 
-    // Boots
-    ctx.fillStyle = BOOT_BLUE;
+    // Boots with gradient and highlight
+    var bootGrad = ctx.createLinearGradient(0, legTop + legH - 6, 0, legTop + legH);
+    bootGrad.addColorStop(0, BOOT_LIGHT);
+    bootGrad.addColorStop(1, BOOT_BLUE);
+    ctx.fillStyle = bootGrad;
     ctx.fillRect(centerX - 11, legTop + legH - 6, legW + 2, 6);
     ctx.fillRect(centerX + 2, legTop + legH - 6, legW + 2, 6);
+    // Boot highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fillRect(centerX - 10, legTop + legH - 6, legW, 2);
+    ctx.fillRect(centerX + 3, legTop + legH - 6, legW, 2);
 
-    // ----- DRAW BODY / TORSO -----
-    ctx.fillStyle = GI_ORANGE;
+    // ----- DRAW BODY / TORSO with gradient -----
+    var bodyGrad = ctx.createLinearGradient(centerX - bodyW/2, 0, centerX + bodyW/2, 0);
+    bodyGrad.addColorStop(0, GI_DARK);
+    bodyGrad.addColorStop(0.3, GI_ORANGE);
+    bodyGrad.addColorStop(0.7, GI_ORANGE);
+    bodyGrad.addColorStop(1, GI_LIGHT);
+    ctx.fillStyle = bodyGrad;
     ctx.fillRect(centerX - bodyW / 2, bodyTop, bodyW, bodyH);
 
-    // Gi shadow (left side fold)
-    ctx.fillStyle = GI_DARK;
-    ctx.fillRect(centerX - bodyW / 2, bodyTop, 4, bodyH);
+    // Fabric fold lines (subtle)
+    ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+    ctx.lineWidth = 0.7;
+    ctx.beginPath(); ctx.moveTo(centerX - 3, bodyTop + 3); ctx.lineTo(centerX - 5, bodyTop + bodyH - 4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(centerX + 4, bodyTop + 2); ctx.lineTo(centerX + 3, bodyTop + bodyH - 4); ctx.stroke();
 
-    // Belt / sash
-    ctx.fillStyle = BELT_BLUE;
+    // Belt / sash with gradient
+    var beltGrad = ctx.createLinearGradient(0, bodyTop + bodyH - 4, 0, bodyTop + bodyH);
+    beltGrad.addColorStop(0, BELT_LIGHT);
+    beltGrad.addColorStop(0.5, BELT_BLUE);
+    beltGrad.addColorStop(1, '#1256A0');
+    ctx.fillStyle = beltGrad;
     ctx.fillRect(centerX - bodyW / 2 - 1, bodyTop + bodyH - 4, bodyW + 2, 4);
+    // Belt highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.fillRect(centerX - bodyW / 2, bodyTop + bodyH - 4, bodyW, 1);
 
-    // Gi collar V-neck detail
+    // Gi collar V-neck with shading
     ctx.fillStyle = SKIN;
     ctx.beginPath();
     ctx.moveTo(centerX - 4, bodyTop);
@@ -2799,110 +2861,146 @@ class Player {
     ctx.lineTo(centerX + 4, bodyTop);
     ctx.closePath();
     ctx.fill();
+    // V-neck shadow line
+    ctx.strokeStyle = SKIN_DARK;
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(centerX - 3, bodyTop + 1);
+    ctx.lineTo(centerX, bodyTop + 6);
+    ctx.lineTo(centerX + 3, bodyTop + 1);
+    ctx.stroke();
 
-    // ----- DRAW ARMS (depends on state) -----
+    // ----- DRAW ARMS -----
     this.drawArms(ctx, centerX, bodyTop, f, state);
 
-    // ----- DRAW HEAD -----
-    // Skin
-    ctx.fillStyle = SKIN;
+    // ----- DRAW HEAD with radial gradient for 3D effect -----
+    var headGrad = ctx.createRadialGradient(headX - 3, headY - 3, 1, headX, headY, headR);
+    headGrad.addColorStop(0, SKIN_LIGHT);
+    headGrad.addColorStop(0.6, SKIN);
+    headGrad.addColorStop(1, SKIN_DARK);
+    ctx.fillStyle = headGrad;
     ctx.beginPath();
     ctx.arc(headX, headY, headR, 0, Math.PI * 2);
     ctx.fill();
+    // Subtle head outline
+    ctx.strokeStyle = OUTLINE;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
 
-    // Skin shadow (lower half accent)
-    ctx.fillStyle = SKIN_DARK;
+    // Jawline shadow
+    ctx.fillStyle = 'rgba(200,140,60,0.2)';
     ctx.beginPath();
-    ctx.arc(headX, headY + 1, headR, 0.1 * Math.PI, 0.9 * Math.PI);
+    ctx.arc(headX, headY + 2, headR - 1, 0.2 * Math.PI, 0.8 * Math.PI);
     ctx.fill();
 
-    // Eyes
+    // Eyes with rounder shape
     const eyeOffX = f * 3;
-    // Left eye
+    // Left eye white
     ctx.fillStyle = WHITE;
-    ctx.fillRect(headX + eyeOffX - 6, headY - 3, 4, 4);
+    ctx.beginPath();
+    ctx.ellipse(headX + eyeOffX - 4, headY - 1, 2.5, 2.8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Left pupil
     ctx.fillStyle = EYE_BLACK;
-    ctx.fillRect(headX + eyeOffX - 5 + (f > 0 ? 1 : 0), headY - 2, 2, 3);
-
-    // Right eye
+    ctx.beginPath();
+    ctx.ellipse(headX + eyeOffX - 4 + f * 0.5, headY - 0.5, 1.3, 1.8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Left eye shine
     ctx.fillStyle = WHITE;
-    ctx.fillRect(headX + eyeOffX + 1, headY - 3, 4, 4);
-    ctx.fillStyle = EYE_BLACK;
-    ctx.fillRect(headX + eyeOffX + 2 + (f > 0 ? 1 : 0), headY - 2, 2, 3);
+    ctx.beginPath();
+    ctx.arc(headX + eyeOffX - 4.5, headY - 2, 0.8, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Mouth (small line)
+    // Right eye white
+    ctx.fillStyle = WHITE;
+    ctx.beginPath();
+    ctx.ellipse(headX + eyeOffX + 3, headY - 1, 2.5, 2.8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Right pupil
+    ctx.fillStyle = EYE_BLACK;
+    ctx.beginPath();
+    ctx.ellipse(headX + eyeOffX + 3 + f * 0.5, headY - 0.5, 1.3, 1.8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Right eye shine
+    ctx.fillStyle = WHITE;
+    ctx.beginPath();
+    ctx.arc(headX + eyeOffX + 2.5, headY - 2, 0.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Nose (small subtle triangle)
+    ctx.fillStyle = SKIN_DARK;
+    ctx.beginPath();
+    ctx.moveTo(headX + eyeOffX + f * 0.5, headY + 2);
+    ctx.lineTo(headX + eyeOffX - 1, headY + 4);
+    ctx.lineTo(headX + eyeOffX + 1, headY + 4);
+    ctx.closePath();
+    ctx.fill();
+
+    // Mouth
     if (state === 'charging' || state === 'firing' || state === 'spiritBomb') {
-      // Open mouth (yelling)
+      // Open mouth (yelling) - rounded
       ctx.fillStyle = '#D84315';
-      ctx.fillRect(headX + eyeOffX - 3, headY + 5, 6, 3);
+      ctx.beginPath();
+      ctx.ellipse(headX + eyeOffX, headY + 6, 3, 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Teeth
+      ctx.fillStyle = WHITE;
+      ctx.fillRect(headX + eyeOffX - 2, headY + 5, 4, 1);
     } else if (state === 'hit') {
-      // Grimace
-      ctx.strokeStyle = SKIN_DARK;
+      ctx.strokeStyle = '#AA6633';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(headX + eyeOffX - 3, headY + 6);
       ctx.lineTo(headX + eyeOffX + 3, headY + 5);
       ctx.stroke();
     } else {
-      // Neutral / slight smile
-      ctx.strokeStyle = SKIN_DARK;
-      ctx.lineWidth = 1.5;
+      // Smile
+      ctx.strokeStyle = '#CC8844';
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
       ctx.moveTo(headX + eyeOffX - 2, headY + 5);
       ctx.quadraticCurveTo(headX + eyeOffX + 1, headY + 8, headX + eyeOffX + 4, headY + 5);
       ctx.stroke();
     }
 
-    // ----- DRAW HAIR (spiky black hair - essential Goku look!) -----
+    // ----- DRAW HAIR with highlights -----
     ctx.fillStyle = HAIR_BLACK;
 
-    // Hair base (covers top of head)
+    // Hair base
     ctx.beginPath();
     ctx.arc(headX, headY - 1, headR + 2, Math.PI, 2 * Math.PI);
     ctx.fill();
 
-    // Spiky hair - multiple triangular spikes pointing up and to the right (scaled up ~40%)
-    // Main center spike (tallest)
-    ctx.beginPath();
-    ctx.moveTo(headX - 3, headY - headR + 1);
-    ctx.lineTo(headX + 1, headY - headR - 17);
-    ctx.lineTo(headX + 6, headY - headR + 3);
-    ctx.closePath();
-    ctx.fill();
+    // Main spikes (same geometry, added highlights)
+    var spikes = [
+      [[headX - 3, headY - headR + 1], [headX + 1, headY - headR - 17], [headX + 6, headY - headR + 3]],
+      [[headX + 4, headY - headR + 1], [headX + 11, headY - headR - 13], [headX + 10, headY - headR + 4]],
+      [[headX + 8, headY - headR + 4], [headX + 18, headY - headR - 7], [headX + 13, headY - headR + 7]],
+      [[headX - 7, headY - headR + 3], [headX - 6, headY - headR - 11], [headX - 1, headY - headR + 1]],
+      [[headX - 11, headY - headR + 6], [headX - 13, headY - headR - 4], [headX - 6, headY - headR + 3]]
+    ];
 
-    // Right spike (pointing up-right)
-    ctx.beginPath();
-    ctx.moveTo(headX + 4, headY - headR + 1);
-    ctx.lineTo(headX + 11, headY - headR - 13);
-    ctx.lineTo(headX + 10, headY - headR + 4);
-    ctx.closePath();
-    ctx.fill();
+    // Draw each spike with fill + highlight edge
+    for (var si = 0; si < spikes.length; si++) {
+      var sp = spikes[si];
+      ctx.fillStyle = HAIR_BLACK;
+      ctx.beginPath();
+      ctx.moveTo(sp[0][0], sp[0][1]);
+      ctx.lineTo(sp[1][0], sp[1][1]);
+      ctx.lineTo(sp[2][0], sp[2][1]);
+      ctx.closePath();
+      ctx.fill();
+      // Highlight on right edge of spike
+      ctx.strokeStyle = HAIR_HIGHLIGHT;
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(sp[1][0], sp[1][1]);
+      ctx.lineTo(sp[2][0], sp[2][1]);
+      ctx.stroke();
+    }
 
-    // Far right spike (more to the right)
-    ctx.beginPath();
-    ctx.moveTo(headX + 8, headY - headR + 4);
-    ctx.lineTo(headX + 18, headY - headR - 7);
-    ctx.lineTo(headX + 13, headY - headR + 7);
-    ctx.closePath();
-    ctx.fill();
-
-    // Left spike
-    ctx.beginPath();
-    ctx.moveTo(headX - 7, headY - headR + 3);
-    ctx.lineTo(headX - 6, headY - headR - 11);
-    ctx.lineTo(headX - 1, headY - headR + 1);
-    ctx.closePath();
-    ctx.fill();
-
-    // Far left spike (smaller)
-    ctx.beginPath();
-    ctx.moveTo(headX - 11, headY - headR + 6);
-    ctx.lineTo(headX - 13, headY - headR - 4);
-    ctx.lineTo(headX - 6, headY - headR + 3);
-    ctx.closePath();
-    ctx.fill();
-
-    // Side hair (covers ears area on the side Goku faces away from)
+    // Side hair
+    ctx.fillStyle = HAIR_BLACK;
     ctx.beginPath();
     ctx.moveTo(headX - f * 10, headY - 4);
     ctx.lineTo(headX - f * 14, headY - 8);
@@ -2910,26 +3008,19 @@ class Player {
     ctx.closePath();
     ctx.fill();
 
-    // Forehead bang spikes (small, pointing forward-down)
+    // Forehead bangs
     ctx.beginPath();
     ctx.moveTo(headX + f * 4, headY - headR + 3);
     ctx.lineTo(headX + f * 8, headY - 5);
     ctx.lineTo(headX + f * 1, headY - 5);
     ctx.closePath();
     ctx.fill();
-
     ctx.beginPath();
     ctx.moveTo(headX + f * 1, headY - headR + 1);
     ctx.lineTo(headX + f * 4, headY - 3);
     ctx.lineTo(headX - f * 1, headY - 4);
     ctx.closePath();
     ctx.fill();
-
-    // ----- HEADBAND (optional red headband detail for Goku look) -----
-    // Actually Goku doesn't wear a headband in base form - skip this
-
-    // ----- WRISTBANDS -----
-    // Drawn in drawArms based on state
 
     ctx.restore();
   }
@@ -3184,19 +3275,28 @@ class EnemyProjectile {
   }
   draw(ctx) {
     ctx.save();
-    // gumdrop shape
+    // Outer glow
+    ctx.save();
+    ctx.globalAlpha = 0.2;
     ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size * 1.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    // gumdrop with radial gradient
+    var bodyGrad = ctx.createRadialGradient(this.x - this.size * 0.2, this.y - this.size * 0.2, this.size * 0.1, this.x, this.y, this.size);
+    bodyGrad.addColorStop(0, '#FFFFFF');
+    bodyGrad.addColorStop(0.4, this.color);
+    bodyGrad.addColorStop(1, this.color);
+    ctx.fillStyle = bodyGrad;
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
     ctx.fill();
     // shine highlight
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.beginPath();
-    ctx.arc(this.x - this.size*0.25, this.y - this.size*0.25, this.size * 0.4, 0, Math.PI * 2);
+    ctx.arc(this.x - this.size*0.25, this.y - this.size*0.25, this.size * 0.35, 0, Math.PI * 2);
     ctx.fill();
-    // sugar sparkle
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(this.x + this.size*0.2, this.y - this.size*0.4, 2, 2);
     ctx.restore();
   }
 }
@@ -3219,25 +3319,58 @@ class PowerUp {
   }
   draw(ctx) {
     var drawY = this.y + Math.sin(this.bobTimer) * 4;
+    var pcx = this.x + 12;
+    var pcy = drawY + 12;
     ctx.save();
+    // Soft glow around powerup
+    var puGlow = ctx.createRadialGradient(pcx, pcy, 4, pcx, pcy, 18);
+    puGlow.addColorStop(0, 'rgba(255,255,200,0.2)');
+    puGlow.addColorStop(1, 'rgba(255,255,200,0)');
+    ctx.fillStyle = puGlow;
+    ctx.beginPath(); ctx.arc(pcx, pcy, 18, 0, Math.PI * 2); ctx.fill();
     switch(this.type) {
       case 'senzu':
-        // cupcake wrapper (brown)
-        ctx.fillStyle = '#AA7744';
+        // cupcake wrapper with gradient
+        var wrapGrad = ctx.createLinearGradient(this.x + 4, drawY + 12, this.x + 4, drawY + 22);
+        wrapGrad.addColorStop(0, '#CC9966');
+        wrapGrad.addColorStop(1, '#AA7744');
+        ctx.fillStyle = wrapGrad;
         ctx.fillRect(this.x + 4, drawY + 12, 16, 10);
-        // cake top (pink frosting)
-        ctx.fillStyle = '#FF88AA';
-        ctx.beginPath(); ctx.arc(this.x + 12, drawY + 10, 10, Math.PI, 0); ctx.fill();
-        // frosting swirl
-        ctx.fillStyle = '#FFAACC';
-        ctx.beginPath(); ctx.arc(this.x + 12, drawY + 8, 6, Math.PI, 0); ctx.fill();
-        // cherry on top
-        ctx.fillStyle = '#FF4466';
-        ctx.beginPath(); ctx.arc(this.x + 12, drawY + 2, 3, 0, Math.PI * 2); ctx.fill();
+        // wrapper ridges
+        ctx.strokeStyle = 'rgba(100,60,30,0.3)';
+        ctx.lineWidth = 0.5;
+        for (var wr = 0; wr < 3; wr++) {
+          ctx.beginPath(); ctx.moveTo(this.x + 7 + wr * 5, drawY + 12); ctx.lineTo(this.x + 7 + wr * 5, drawY + 22); ctx.stroke();
+        }
+        // cake top with gradient
+        var cakeGrad = ctx.createRadialGradient(pcx - 2, drawY + 6, 2, pcx, drawY + 10, 11);
+        cakeGrad.addColorStop(0, '#FFAACC');
+        cakeGrad.addColorStop(1, '#FF88AA');
+        ctx.fillStyle = cakeGrad;
+        ctx.beginPath(); ctx.arc(pcx, drawY + 10, 10, Math.PI, 0); ctx.fill();
+        // frosting swirl with gradient
+        var swirlGrad = ctx.createRadialGradient(pcx, drawY + 6, 1, pcx, drawY + 8, 7);
+        swirlGrad.addColorStop(0, '#FFCCDD');
+        swirlGrad.addColorStop(1, '#FFAACC');
+        ctx.fillStyle = swirlGrad;
+        ctx.beginPath(); ctx.arc(pcx, drawY + 8, 6, Math.PI, 0); ctx.fill();
+        // cherry with gradient
+        var cherryGrad = ctx.createRadialGradient(pcx - 1, drawY + 1, 0.5, pcx, drawY + 2, 3.5);
+        cherryGrad.addColorStop(0, '#FF7788');
+        cherryGrad.addColorStop(1, '#FF4466');
+        ctx.fillStyle = cherryGrad;
+        ctx.beginPath(); ctx.arc(pcx, drawY + 2, 3, 0, Math.PI * 2); ctx.fill();
+        // cherry shine
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.beginPath(); ctx.arc(pcx - 1, drawY + 1, 1, 0, Math.PI * 2); ctx.fill();
         break;
       case 'ki':
-        // candy cane stick
-        ctx.fillStyle = '#FFFFFF';
+        // candy cane with gradient stick
+        var stickGrad = ctx.createLinearGradient(this.x + 10, 0, this.x + 14, 0);
+        stickGrad.addColorStop(0, '#EEEEEE');
+        stickGrad.addColorStop(0.5, '#FFFFFF');
+        stickGrad.addColorStop(1, '#DDDDDD');
+        ctx.fillStyle = stickGrad;
         ctx.fillRect(this.x + 10, drawY + 4, 4, 16);
         // red stripes
         ctx.fillStyle = '#FF4444';
@@ -3250,37 +3383,51 @@ class PowerUp {
         ctx.beginPath(); ctx.arc(this.x + 14, drawY + 4, 4, Math.PI, Math.PI*1.5); ctx.fill();
         break;
       case 'dragonball':
-        // golden cookie circle
-        ctx.fillStyle = '#FFD700';
-        ctx.beginPath(); ctx.arc(this.x + 12, drawY + 12, 10, 0, Math.PI * 2); ctx.fill();
-        // darker edge
-        ctx.strokeStyle = '#CC9900';
-        ctx.lineWidth = 2;
+        // golden cookie with gradient
+        var goldGrad = ctx.createRadialGradient(pcx - 2, drawY + 10, 2, pcx, pcy, 11);
+        goldGrad.addColorStop(0, '#FFEE88');
+        goldGrad.addColorStop(0.5, '#FFD700');
+        goldGrad.addColorStop(1, '#CC9900');
+        ctx.fillStyle = goldGrad;
+        ctx.beginPath(); ctx.arc(pcx, pcy, 10, 0, Math.PI * 2); ctx.fill();
+        // edge
+        ctx.strokeStyle = '#BB8800';
+        ctx.lineWidth = 1.5;
         ctx.stroke();
-        // star shape in center
+        // star shape
         ctx.fillStyle = '#FFAA00';
         ctx.beginPath();
         for(var s=0; s<5; s++) {
           var a = s * Math.PI * 2/5 - Math.PI/2;
-          var r = s===0 ? 0 : 6;
-          if(s===0) ctx.moveTo(this.x+12+Math.cos(a)*6, drawY+12+Math.sin(a)*6);
-          else ctx.lineTo(this.x+12+Math.cos(a)*6, drawY+12+Math.sin(a)*6);
+          if(s===0) ctx.moveTo(pcx+Math.cos(a)*6, pcy+Math.sin(a)*6);
+          else ctx.lineTo(pcx+Math.cos(a)*6, pcy+Math.sin(a)*6);
           var a2 = a + Math.PI/5;
-          ctx.lineTo(this.x+12+Math.cos(a2)*3, drawY+12+Math.sin(a2)*3);
+          ctx.lineTo(pcx+Math.cos(a2)*3, pcy+Math.sin(a2)*3);
         }
         ctx.closePath(); ctx.fill();
+        // shine
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.beginPath(); ctx.arc(pcx - 3, drawY + 9, 3, 0, Math.PI * 2); ctx.fill();
         ctx.lineWidth = 1;
         break;
       case 'speed':
-        // cotton candy fluffy shape
-        ctx.fillStyle = '#FFAADD';
+        // cotton candy with gradients
+        var cc1 = ctx.createRadialGradient(this.x + 10, drawY + 4, 1, this.x + 12, drawY + 6, 8);
+        cc1.addColorStop(0, '#FFCCEE'); cc1.addColorStop(1, '#FFAADD');
+        ctx.fillStyle = cc1;
         ctx.beginPath(); ctx.arc(this.x + 12, drawY + 6, 7, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#AADDFF';
+        var cc2 = ctx.createRadialGradient(this.x + 8, drawY + 8, 1, this.x + 10, drawY + 10, 7);
+        cc2.addColorStop(0, '#CCEEFF'); cc2.addColorStop(1, '#AADDFF');
+        ctx.fillStyle = cc2;
         ctx.beginPath(); ctx.arc(this.x + 10, drawY + 10, 6, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#FFCCEE';
+        var cc3 = ctx.createRadialGradient(this.x + 12, drawY + 7, 1, this.x + 14, drawY + 9, 6);
+        cc3.addColorStop(0, '#FFDDEE'); cc3.addColorStop(1, '#FFCCEE');
+        ctx.fillStyle = cc3;
         ctx.beginPath(); ctx.arc(this.x + 14, drawY + 9, 5, 0, Math.PI * 2); ctx.fill();
-        // stick
-        ctx.fillStyle = '#FFFFFF';
+        // stick with gradient
+        var csGrad = ctx.createLinearGradient(this.x + 11, 0, this.x + 14, 0);
+        csGrad.addColorStop(0, '#EEEEEE'); csGrad.addColorStop(0.5, '#FFFFFF'); csGrad.addColorStop(1, '#DDDDDD');
+        ctx.fillStyle = csGrad;
         ctx.fillRect(this.x + 11, drawY + 14, 3, 10);
         break;
     }
@@ -3327,6 +3474,22 @@ function maybeDropPowerUp(x, y) {
   else if (roll < 0.25) powerUps.push(new PowerUp(x, y, 'ki'));
   else if (roll < 0.30) powerUps.push(new PowerUp(x, y, 'dragonball'));
   else if (roll < 0.35) powerUps.push(new PowerUp(x, y, 'speed'));
+}
+
+// ---- Enemy drawing helpers ----
+function drawSpriteDropShadow(ctx, cx, cy, rx, ry) {
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, rx || 12, ry || 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawSpriteOutline(ctx, cx, cy, r, color) {
+  ctx.strokeStyle = color || 'rgba(0,0,0,0.2)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.stroke();
 }
 
 // ---- Base Enemy ----
@@ -3400,35 +3563,54 @@ class RedRibbonSoldier extends Enemy {
   }
   draw(ctx) {
     var fc = this.flashTimer > 0 ? '#FFF' : null;
-    // Gingerbread body
-    ctx.fillStyle = fc || '#CC8844';
+    var cx = this.x + 10, cy = this.y + 17;
+    // Drop shadow
+    drawSpriteDropShadow(ctx, cx, this.y + 35, 10, 3);
+    // Gingerbread body with gradient
+    var gbGrad = ctx.createRadialGradient(cx - 2, cy - 4, 2, cx, cy, 18);
+    gbGrad.addColorStop(0, fc || '#DDAA66');
+    gbGrad.addColorStop(1, fc || '#AA7733');
+    ctx.fillStyle = fc ? fc : gbGrad;
     ctx.fillRect(this.x + 2, this.y + 8, 16, 22);
-    // Gingerbread head (circle)
+    // Gingerbread head
+    ctx.fillStyle = fc ? fc : gbGrad;
+    ctx.beginPath(); ctx.arc(cx, this.y + 5, 9, 0, Math.PI*2); ctx.fill();
+    // Head outline
+    ctx.strokeStyle = 'rgba(100,60,20,0.3)';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    // Arms with rounded ends
     ctx.fillStyle = fc || '#CC8844';
-    ctx.beginPath(); ctx.arc(this.x + 10, this.y + 5, 9, 0, Math.PI*2); ctx.fill();
-    // Arms
-    ctx.fillStyle = fc || '#CC8844';
-    ctx.fillRect(this.x - 4, this.y + 12, 6, 4);
-    ctx.fillRect(this.x + 18, this.y + 12, 6, 4);
+    ctx.beginPath(); ctx.ellipse(this.x - 1, this.y + 14, 5, 3, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(this.x + 21, this.y + 14, 5, 3, 0, 0, Math.PI*2); ctx.fill();
     // Legs
-    ctx.fillRect(this.x + 2, this.y + 28, 5, 6);
-    ctx.fillRect(this.x + 13, this.y + 28, 5, 6);
-    // White icing buttons
+    ctx.beginPath(); ctx.ellipse(this.x + 5, this.y + 31, 4, 4, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(this.x + 15, this.y + 31, 4, 4, 0, 0, Math.PI*2); ctx.fill();
+    // Body outline
+    ctx.strokeStyle = 'rgba(100,60,20,0.25)';
+    ctx.lineWidth = 0.8;
+    ctx.strokeRect(this.x + 2, this.y + 8, 16, 22);
+    // White icing buttons with glow
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(this.x + 8, this.y + 13, 4, 3);
-    ctx.fillRect(this.x + 8, this.y + 19, 4, 3);
-    ctx.fillRect(this.x + 8, this.y + 25, 4, 3);
-    // Icing smile
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(this.x + 6, this.y + 7, 8, 2);
+    ctx.beginPath(); ctx.arc(cx, this.y + 14, 2.5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, this.y + 20, 2.5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, this.y + 26, 2.5, 0, Math.PI*2); ctx.fill();
+    // Icing smile (curved)
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx, this.y + 7, 4, 0.2, Math.PI - 0.2); ctx.stroke();
     // Icing eyes
     ctx.fillStyle = '#FFFFFF';
-    ctx.beginPath(); ctx.arc(this.x + 7, this.y + 3, 2, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(this.x + 13, this.y + 3, 2, 0, Math.PI*2); ctx.fill();
-    // Black pupils
+    ctx.beginPath(); ctx.arc(this.x + 7, this.y + 3, 2.5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(this.x + 13, this.y + 3, 2.5, 0, Math.PI*2); ctx.fill();
+    // Pupils
     ctx.fillStyle = '#000';
-    ctx.fillRect(this.x + 6, this.y + 2, 2, 2);
-    ctx.fillRect(this.x + 12, this.y + 2, 2, 2);
+    ctx.beginPath(); ctx.arc(this.x + 7, this.y + 3, 1.2, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(this.x + 13, this.y + 3, 1.2, 0, Math.PI*2); ctx.fill();
+    // Eye shine
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(this.x + 6.3, this.y + 2.3, 0.6, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(this.x + 12.3, this.y + 2.3, 0.6, 0, Math.PI*2); ctx.fill();
     this.drawHealthBar(ctx);
   }
 }
@@ -3453,28 +3635,59 @@ class BattleRobot extends Enemy {
   draw(ctx) {
     var fc = this.flashTimer > 0 ? '#FFF' : null;
     var cx = this.x + 16; var cy = this.y + 16;
-    // Donut body (outer ring)
-    ctx.fillStyle = fc || '#FFAA77';
+    // Drop shadow
+    drawSpriteDropShadow(ctx, cx, cy + 16, 14, 4);
+    // Donut body with radial gradient
+    if (!fc) {
+      var bodyGrad = ctx.createRadialGradient(cx - 3, cy - 3, 2, cx, cy, 16);
+      bodyGrad.addColorStop(0, '#FFCC99');
+      bodyGrad.addColorStop(0.6, '#FFAA77');
+      bodyGrad.addColorStop(1, '#DD8855');
+      ctx.fillStyle = bodyGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.arc(cx, cy, 15, 0, Math.PI * 2); ctx.fill();
-    // Donut hole
-    ctx.fillStyle = '#FFD4E8';
+    // Body outline
+    ctx.strokeStyle = 'rgba(180,100,40,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(cx, cy, 15, 0, Math.PI * 2); ctx.stroke();
+    // Donut hole with gradient
+    var holeGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, 7);
+    holeGrad.addColorStop(0, '#FFEEEE');
+    holeGrad.addColorStop(1, '#FFD4E8');
+    ctx.fillStyle = holeGrad;
     ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
-    // Pink glaze on top
-    ctx.fillStyle = fc || '#FF88BB';
+    // Pink glaze on top with gradient
+    if (!fc) {
+      var glazeGrad = ctx.createLinearGradient(cx, cy - 15, cx, cy);
+      glazeGrad.addColorStop(0, '#FFAACC');
+      glazeGrad.addColorStop(1, '#FF88BB');
+      ctx.fillStyle = glazeGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.arc(cx, cy - 2, 13, Math.PI, Math.PI * 2); ctx.fill();
-    // Sprinkles
-    ctx.fillStyle = '#FF4444'; ctx.fillRect(cx - 8, cy - 8, 3, 2);
-    ctx.fillStyle = '#44FF44'; ctx.fillRect(cx + 3, cy - 10, 3, 2);
-    ctx.fillStyle = '#4444FF'; ctx.fillRect(cx - 5, cy - 11, 2, 3);
-    ctx.fillStyle = '#FFFF44'; ctx.fillRect(cx + 6, cy - 7, 2, 3);
-    ctx.fillStyle = '#FF44FF'; ctx.fillRect(cx - 1, cy - 12, 3, 2);
-    // Cute eyes on the donut
+    // Rounded sprinkles
+    ctx.save();
+    var sprColors = ['#FF4444', '#44FF44', '#4444FF', '#FFFF44', '#FF44FF', '#44FFFF'];
+    var sprX = [cx-8, cx+3, cx-5, cx+6, cx-1, cx+8];
+    var sprY = [cy-8, cy-10, cy-11, cy-7, cy-12, cy-9];
+    var sprA = [0.3, -0.4, 0.8, -0.2, 0.5, -0.6];
+    for (var i = 0; i < 6; i++) {
+      ctx.fillStyle = sprColors[i];
+      ctx.save(); ctx.translate(sprX[i], sprY[i]); ctx.rotate(sprA[i]);
+      ctx.beginPath(); ctx.ellipse(0, 0, 2, 1, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+    // Cute eyes with shine
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath(); ctx.arc(cx - 4, cy + 2, 3, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx + 4, cy + 2, 3, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#000';
     ctx.beginPath(); ctx.arc(cx - 4, cy + 2, 1.5, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx + 4, cy + 2, 1.5, 0, Math.PI * 2); ctx.fill();
+    // Eye shine
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(cx - 4.5, cy + 1, 0.8, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 3.5, cy + 1, 0.8, 0, Math.PI * 2); ctx.fill();
     this.drawHealthBar(ctx);
   }
 }
@@ -3498,26 +3711,51 @@ class NinjaAssassin extends Enemy {
   }
   draw(ctx) {
     var fc = this.flashTimer > 0 ? '#FFF' : null;
-    // Jellybean body (oval)
-    ctx.fillStyle = fc || '#FF6688';
-    ctx.beginPath(); ctx.ellipse(this.x + 13, this.y + 17, 12, 16, 0, 0, Math.PI * 2); ctx.fill();
-    // Shine highlight
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    var bx = this.x + 13; var by = this.y + 17;
+    // Drop shadow
+    drawSpriteDropShadow(ctx, bx, this.y + 33, 10, 3);
+    // Jellybean body with radial gradient
+    if (!fc) {
+      var bodyGrad = ctx.createRadialGradient(bx - 3, by - 4, 2, bx, by, 17);
+      bodyGrad.addColorStop(0, '#FF99AA');
+      bodyGrad.addColorStop(0.5, '#FF6688');
+      bodyGrad.addColorStop(1, '#DD4466');
+      ctx.fillStyle = bodyGrad;
+    } else { ctx.fillStyle = fc; }
+    ctx.beginPath(); ctx.ellipse(bx, by, 12, 16, 0, 0, Math.PI * 2); ctx.fill();
+    // Body outline
+    ctx.strokeStyle = 'rgba(180,40,60,0.25)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.ellipse(bx, by, 12, 16, 0, 0, Math.PI * 2); ctx.stroke();
+    // Shine highlight with gradient
+    ctx.save();
+    ctx.globalAlpha = 0.45;
+    ctx.fillStyle = '#FFFFFF';
     ctx.beginPath(); ctx.ellipse(this.x + 9, this.y + 11, 4, 7, -0.3, 0, Math.PI * 2); ctx.fill();
-    // Cute eyes (white)
+    ctx.globalAlpha = 0.25;
+    ctx.beginPath(); ctx.ellipse(this.x + 9, this.y + 9, 2, 4, -0.3, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    // Eyes with shine
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath(); ctx.arc(this.x + 9, this.y + 14, 3, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(this.x + 17, this.y + 14, 3, 0, Math.PI * 2); ctx.fill();
-    // Black pupils
     ctx.fillStyle = '#000';
     ctx.beginPath(); ctx.arc(this.x + 10, this.y + 14, 1.5, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(this.x + 18, this.y + 14, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(this.x + 9, this.y + 13, 0.8, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(this.x + 17, this.y + 13, 0.8, 0, Math.PI * 2); ctx.fill();
     // Little smile
     ctx.strokeStyle = '#CC3355';
     ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(this.x + 13, this.y + 18, 4, 0.2, Math.PI - 0.2); ctx.stroke();
-    // Little feet
-    ctx.fillStyle = fc || '#FF6688';
+    ctx.beginPath(); ctx.arc(bx, this.y + 18, 4, 0.2, Math.PI - 0.2); ctx.stroke();
+    // Little feet with gradient
+    if (!fc) {
+      var footGrad = ctx.createRadialGradient(this.x + 8, this.y + 31, 1, this.x + 8, this.y + 31, 4);
+      footGrad.addColorStop(0, '#FF88AA');
+      footGrad.addColorStop(1, '#DD4466');
+      ctx.fillStyle = footGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.ellipse(this.x + 8, this.y + 31, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.ellipse(this.x + 18, this.y + 31, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
     this.drawHealthBar(ctx);
@@ -3547,32 +3785,75 @@ class FriezaSoldier extends Enemy {
   draw(ctx) {
     var fc = this.flashTimer > 0 ? '#FFF' : null;
     var cx = this.x + 15;
-    // Candy corn triangle - yellow base
-    ctx.fillStyle = fc || '#FFEE44';
+    // Drop shadow
+    drawSpriteDropShadow(ctx, cx, this.y + 36, 10, 3);
+    // Candy corn triangle - yellow base with gradient
+    if (!fc) {
+      var baseGrad = ctx.createLinearGradient(cx, this.y + 34, cx, this.y);
+      baseGrad.addColorStop(0, '#FFEE44');
+      baseGrad.addColorStop(0.4, '#FFE033');
+      baseGrad.addColorStop(1, '#FFDD22');
+      ctx.fillStyle = baseGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath();
     ctx.moveTo(cx - 14, this.y + 34);
     ctx.lineTo(cx + 14, this.y + 34);
     ctx.lineTo(cx, this.y);
     ctx.closePath(); ctx.fill();
-    // Orange middle band
-    ctx.fillStyle = fc || '#FF8822';
+    // Outline
+    ctx.strokeStyle = 'rgba(200,150,0,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx - 14, this.y + 34);
+    ctx.lineTo(cx + 14, this.y + 34);
+    ctx.lineTo(cx, this.y);
+    ctx.closePath(); ctx.stroke();
+    // Orange middle band with gradient
+    if (!fc) {
+      var midGrad = ctx.createLinearGradient(cx - 10, this.y + 24, cx + 10, this.y + 12);
+      midGrad.addColorStop(0, '#FFAA44');
+      midGrad.addColorStop(1, '#FF8822');
+      ctx.fillStyle = midGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath();
     ctx.moveTo(cx - 10, this.y + 24);
     ctx.lineTo(cx + 10, this.y + 24);
     ctx.lineTo(cx + 5, this.y + 12);
     ctx.lineTo(cx - 5, this.y + 12);
     ctx.closePath(); ctx.fill();
-    // White tip at top
-    ctx.fillStyle = fc || '#FFFFFF';
+    // White tip with subtle gradient
+    if (!fc) {
+      var tipGrad = ctx.createLinearGradient(cx, this.y, cx, this.y + 12);
+      tipGrad.addColorStop(0, '#FFFFFF');
+      tipGrad.addColorStop(1, '#FFEEDD');
+      ctx.fillStyle = tipGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath();
     ctx.moveTo(cx - 5, this.y + 12);
     ctx.lineTo(cx + 5, this.y + 12);
     ctx.lineTo(cx, this.y);
     ctx.closePath(); ctx.fill();
-    // Small dot eyes
+    // Side highlight
+    ctx.save();
+    ctx.globalAlpha = 0.2;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.moveTo(cx - 10, this.y + 28);
+    ctx.lineTo(cx - 5, this.y + 10);
+    ctx.lineTo(cx - 2, this.y + 10);
+    ctx.lineTo(cx - 7, this.y + 28);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+    // Eyes with white background and shine
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(cx - 4, this.y + 20, 2.8, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 4, this.y + 20, 2.8, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#000';
-    ctx.beginPath(); ctx.arc(cx - 4, this.y + 20, 2, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(cx + 4, this.y + 20, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx - 4, this.y + 20, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 4, this.y + 20, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(cx - 4.5, this.y + 19, 0.7, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 3.5, this.y + 19, 0.7, 0, Math.PI * 2); ctx.fill();
     // Cute little smile
     ctx.strokeStyle = '#AA5500';
     ctx.lineWidth = 1.5;
@@ -3602,26 +3883,46 @@ class BruteWarrior extends Enemy {
   draw(ctx) {
     var fc = this.flashTimer > 0 ? '#FFF' : null;
     var cx = this.x + 20; var cy = this.y + 22;
-    // Large chocolate ball body
-    ctx.fillStyle = fc || '#664422';
+    // Drop shadow
+    drawSpriteDropShadow(ctx, cx, cy + 22, 18, 5);
+    // Large chocolate ball with radial gradient
+    if (!fc) {
+      var bodyGrad = ctx.createRadialGradient(cx - 5, cy - 6, 3, cx, cy, 22);
+      bodyGrad.addColorStop(0, '#997755');
+      bodyGrad.addColorStop(0.5, '#664422');
+      bodyGrad.addColorStop(1, '#442200');
+      ctx.fillStyle = bodyGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.arc(cx, cy, 20, 0, Math.PI * 2); ctx.fill();
-    // Lighter chocolate highlight
-    ctx.fillStyle = fc || '#886644';
-    ctx.beginPath(); ctx.arc(cx - 5, cy - 6, 10, 0, Math.PI * 2); ctx.fill();
-    // Cocoa dust specks
+    // Body outline
+    ctx.strokeStyle = 'rgba(40,20,0,0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx, cy, 20, 0, Math.PI * 2); ctx.stroke();
+    // Lighter chocolate highlight with gradient
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    var hiGrad = ctx.createRadialGradient(cx - 6, cy - 8, 1, cx - 5, cy - 6, 11);
+    hiGrad.addColorStop(0, '#BB9977');
+    hiGrad.addColorStop(1, 'rgba(136,102,68,0)');
+    ctx.fillStyle = hiGrad;
+    ctx.beginPath(); ctx.arc(cx - 5, cy - 6, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    // Cocoa dust specks (rounded)
     ctx.fillStyle = '#AA8866';
-    ctx.fillRect(cx - 10, cy - 12, 2, 2);
-    ctx.fillRect(cx + 6, cy - 10, 2, 2);
-    ctx.fillRect(cx - 3, cy - 14, 2, 2);
-    ctx.fillRect(cx + 10, cy - 6, 2, 2);
-    ctx.fillRect(cx - 12, cy - 4, 2, 2);
-    // Angry cute face - eyes
+    var specks = [[cx-10,cy-12],[cx+6,cy-10],[cx-3,cy-14],[cx+10,cy-6],[cx-12,cy-4]];
+    for (var i = 0; i < specks.length; i++) {
+      ctx.beginPath(); ctx.arc(specks[i][0], specks[i][1], 1.2, 0, Math.PI * 2); ctx.fill();
+    }
+    // Angry cute face - eyes with shine
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath(); ctx.arc(cx - 6, cy - 2, 4, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx + 6, cy - 2, 4, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#000';
     ctx.beginPath(); ctx.arc(cx - 5, cy - 1, 2, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx + 7, cy - 1, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(cx - 6, cy - 3, 1, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 6, cy - 3, 1, 0, Math.PI * 2); ctx.fill();
     // Angry eyebrows
     ctx.strokeStyle = '#442200';
     ctx.lineWidth = 2;
@@ -3655,26 +3956,52 @@ class GinyuStriker extends Enemy {
   draw(ctx) {
     var fc = this.flashTimer > 0 ? '#FFF' : null;
     var cx = this.x + 14; var cy = this.y + 12;
-    // Lollipop stick (white)
-    ctx.fillStyle = '#FFFFFF';
+    // Drop shadow
+    drawSpriteDropShadow(ctx, cx, cy + 26, 8, 3);
+    // Lollipop stick with subtle gradient
+    var stickGrad = ctx.createLinearGradient(cx - 2, cy + 6, cx + 2, cy + 6);
+    stickGrad.addColorStop(0, '#EEEEEE');
+    stickGrad.addColorStop(0.5, '#FFFFFF');
+    stickGrad.addColorStop(1, '#DDDDDD');
+    ctx.fillStyle = stickGrad;
     ctx.fillRect(cx - 2, cy + 6, 4, 18);
-    // Circular candy top
-    ctx.fillStyle = fc || this.bodyColor;
+    // Circular candy top with radial gradient
+    if (!fc) {
+      var candyGrad = ctx.createRadialGradient(cx - 3, cy - 3, 1, cx, cy, 13);
+      var baseHue = this.bodyColor;
+      candyGrad.addColorStop(0, '#FFFFFF');
+      candyGrad.addColorStop(0.3, baseHue);
+      candyGrad.addColorStop(1, baseHue);
+      ctx.fillStyle = candyGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI * 2); ctx.fill();
+    // Candy outline
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI * 2); ctx.stroke();
     // White swirl stripe
-    ctx.strokeStyle = '#FFFFFF';
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.arc(cx, cy, 4, 0, Math.PI * 1.5); ctx.stroke();
     ctx.beginPath();
     ctx.arc(cx, cy, 8, Math.PI * 0.5, Math.PI * 2); ctx.stroke();
-    // Cute face on candy
+    // Shine highlight
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.ellipse(cx - 4, cy - 4, 4, 6, -0.3, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    // Cute face with shine
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath(); ctx.arc(cx - 4, cy - 2, 2.5, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx + 4, cy - 2, 2.5, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#000';
     ctx.beginPath(); ctx.arc(cx - 4, cy - 2, 1.2, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx + 4, cy - 2, 1.2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(cx - 4.5, cy - 3, 0.7, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 3.5, cy - 3, 0.7, 0, Math.PI * 2); ctx.fill();
     // Happy mouth
     ctx.strokeStyle = '#AA2255';
     ctx.lineWidth = 1.5;
@@ -3718,38 +4045,73 @@ class CellJunior extends Enemy {
   draw(ctx) {
     var fc = this.flashTimer > 0 ? '#FFF' : null;
     var cx = this.x + 13; var cy = this.y + 16;
-    // Gummy bear body (rounded oval)
-    ctx.fillStyle = fc || '#44DD66';
+    // Drop shadow
+    drawSpriteDropShadow(ctx, cx, this.y + 32, 10, 3);
+    // Gummy bear body with radial gradient
+    if (!fc) {
+      var bodyGrad = ctx.createRadialGradient(cx - 2, cy - 3, 2, cx, cy, 16);
+      bodyGrad.addColorStop(0, '#88FF99');
+      bodyGrad.addColorStop(0.5, '#44DD66');
+      bodyGrad.addColorStop(1, '#22AA44');
+      ctx.fillStyle = bodyGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.ellipse(cx, cy, 11, 14, 0, 0, Math.PI * 2); ctx.fill();
-    // Round ears on top
-    ctx.fillStyle = fc || '#44DD66';
+    // Round ears with gradient
     ctx.beginPath(); ctx.arc(cx - 7, this.y + 3, 5, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx + 7, this.y + 3, 5, 0, Math.PI * 2); ctx.fill();
+    // Ear inner color
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = '#22AA44';
+    ctx.beginPath(); ctx.arc(cx - 7, this.y + 3, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 7, this.y + 3, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
     // Head
+    if (!fc) { ctx.fillStyle = bodyGrad; } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.arc(cx, this.y + 8, 8, 0, Math.PI * 2); ctx.fill();
-    // Lighter belly patch
-    ctx.fillStyle = fc || '#88FFAA';
+    // Body outline
+    ctx.strokeStyle = 'rgba(20,120,40,0.25)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.ellipse(cx, cy, 11, 14, 0, 0, Math.PI * 2); ctx.stroke();
+    // Lighter belly patch with gradient
+    if (!fc) {
+      var bellyGrad = ctx.createRadialGradient(cx, cy + 2, 1, cx, cy + 3, 8);
+      bellyGrad.addColorStop(0, '#BBFFCC');
+      bellyGrad.addColorStop(1, '#88FFAA');
+      ctx.fillStyle = bellyGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.ellipse(cx, cy + 3, 6, 7, 0, 0, Math.PI * 2); ctx.fill();
-    // Sour face - squinting eyes
-    ctx.fillStyle = '#000';
-    ctx.fillRect(cx - 5, this.y + 6, 4, 2);
-    ctx.fillRect(cx + 1, this.y + 6, 4, 2);
-    // Puckered mouth (sour!)
+    // Sour face - improved squinting eyes
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(cx - 6, this.y + 7); ctx.lineTo(cx - 2, this.y + 6); ctx.lineTo(cx - 6, this.y + 5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx + 1, this.y + 7); ctx.lineTo(cx + 5, this.y + 6); ctx.lineTo(cx + 1, this.y + 5); ctx.stroke();
+    // Puckered mouth
     ctx.strokeStyle = '#228833';
     ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.arc(cx, this.y + 11, 2.5, 0, Math.PI * 2); ctx.stroke();
-    // Little arms
-    ctx.fillStyle = fc || '#44DD66';
+    // Little arms with gradient
+    if (!fc) { ctx.fillStyle = bodyGrad; } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.ellipse(this.x + 1, cy - 2, 4, 3, -0.4, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.ellipse(this.x + 25, cy - 2, 4, 3, 0.4, 0, Math.PI * 2); ctx.fill();
     // Little feet
     ctx.beginPath(); ctx.ellipse(cx - 5, this.y + 29, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.ellipse(cx + 5, this.y + 29, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
-    // Sugar coating sparkles
+    // Sugar coating sparkles (star shapes)
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(cx - 8, cy - 5, 2, 2);
-    ctx.fillRect(cx + 5, cy - 8, 2, 2);
-    ctx.fillRect(cx - 3, cy + 6, 2, 2);
+    ctx.save();
+    ctx.globalAlpha = 0.6;
+    var sparkPos = [[cx-8,cy-5],[cx+5,cy-8],[cx-3,cy+6],[cx+7,cy+2]];
+    for (var i = 0; i < sparkPos.length; i++) {
+      var sx = sparkPos[i][0]; var sy = sparkPos[i][1];
+      ctx.beginPath();
+      ctx.moveTo(sx, sy - 2); ctx.lineTo(sx + 0.7, sy - 0.7);
+      ctx.lineTo(sx + 2, sy); ctx.lineTo(sx + 0.7, sy + 0.7);
+      ctx.lineTo(sx, sy + 2); ctx.lineTo(sx - 0.7, sy + 0.7);
+      ctx.lineTo(sx - 2, sy); ctx.lineTo(sx - 0.7, sy - 0.7);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
     this.drawHealthBar(ctx);
   }
 }
@@ -3779,39 +4141,74 @@ class DarkClone extends Enemy {
     var fc = this.flashTimer > 0 ? '#FFF' : null;
     var cx = this.x + 16; var cy = this.y + 19;
     ctx.save();
+    // Drop shadow
+    drawSpriteDropShadow(ctx, cx, cy + 20, 16, 4);
     ctx.globalAlpha = 0.85;
-    // Dark cookie body (large circle)
-    ctx.fillStyle = fc || '#553322';
+    // Golden glow around cookie with gradient
+    var glowGrad = ctx.createRadialGradient(cx, cy, 14, cx, cy, 26);
+    glowGrad.addColorStop(0, 'rgba(255,170,68,0.35)');
+    glowGrad.addColorStop(1, 'rgba(255,170,68,0)');
+    ctx.save(); ctx.globalAlpha = 0.5;
+    ctx.fillStyle = glowGrad;
+    ctx.beginPath(); ctx.arc(cx, cy, 26, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    // Dark cookie body with radial gradient
+    if (!fc) {
+      var cookieGrad = ctx.createRadialGradient(cx - 3, cy - 4, 2, cx, cy, 18);
+      cookieGrad.addColorStop(0, '#775533');
+      cookieGrad.addColorStop(0.6, '#553322');
+      cookieGrad.addColorStop(1, '#331100');
+      ctx.fillStyle = cookieGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.arc(cx, cy, 16, 0, Math.PI * 2); ctx.fill();
-    // Cookie edge detail (slightly lighter)
-    ctx.strokeStyle = '#664433';
+    // Cookie edge detail
+    ctx.strokeStyle = 'rgba(100,68,51,0.6)';
     ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(cx, cy, 15, 0, Math.PI * 2); ctx.stroke();
-    // Spiky hair silhouette on top (shadow cookie crumbles)
-    ctx.fillStyle = fc || '#553322';
+    // Spiky hair silhouette with gradient
+    if (!fc) { ctx.fillStyle = cookieGrad; } else { ctx.fillStyle = fc; }
     ctx.beginPath();
     ctx.moveTo(cx - 8, this.y + 6); ctx.lineTo(cx - 12, this.y - 4); ctx.lineTo(cx - 3, this.y + 3);
     ctx.moveTo(cx - 3, this.y + 3); ctx.lineTo(cx, this.y - 8); ctx.lineTo(cx + 4, this.y + 3);
     ctx.moveTo(cx + 4, this.y + 3); ctx.lineTo(cx + 8, this.y - 4); ctx.lineTo(cx + 10, this.y + 5);
     ctx.moveTo(cx + 9, this.y + 5); ctx.lineTo(cx + 14, this.y); ctx.lineTo(cx + 13, this.y + 7);
     ctx.fill();
-    // Golden glow around cookie
-    ctx.globalAlpha = 0.3;
-    ctx.fillStyle = '#FFAA44';
-    ctx.beginPath(); ctx.arc(cx, cy, 22, 0, Math.PI * 2); ctx.fill();
-    // Chocolate chip spots
+    // Spike edge highlights
+    ctx.save(); ctx.globalAlpha = 0.3;
+    ctx.strokeStyle = '#AA8844';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(cx - 12, this.y - 4); ctx.lineTo(cx - 3, this.y + 3);
+    ctx.moveTo(cx, this.y - 8); ctx.lineTo(cx + 4, this.y + 3);
+    ctx.moveTo(cx + 8, this.y - 4); ctx.lineTo(cx + 10, this.y + 5);
+    ctx.stroke();
+    ctx.restore();
+    // Chocolate chip spots with 3D effect
     ctx.globalAlpha = 0.9;
-    ctx.fillStyle = '#332211';
-    ctx.beginPath(); ctx.arc(cx - 6, cy - 4, 3, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(cx + 5, cy - 2, 2.5, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(cx - 2, cy + 5, 2.5, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(cx + 7, cy + 5, 2, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(cx - 8, cy + 3, 2, 0, Math.PI * 2); ctx.fill();
-    // Cookie chip eyes (lighter, glowing)
+    var chipPositions = [[cx-6,cy-4,3],[cx+5,cy-2,2.5],[cx-2,cy+5,2.5],[cx+7,cy+5,2],[cx-8,cy+3,2]];
+    for (var i = 0; i < chipPositions.length; i++) {
+      var cp = chipPositions[i];
+      var chipGrad = ctx.createRadialGradient(cp[0]-0.5, cp[1]-0.5, 0.5, cp[0], cp[1], cp[2]);
+      chipGrad.addColorStop(0, '#443322');
+      chipGrad.addColorStop(1, '#221100');
+      ctx.fillStyle = chipGrad;
+      ctx.beginPath(); ctx.arc(cp[0], cp[1], cp[2], 0, Math.PI * 2); ctx.fill();
+    }
+    // Cookie chip eyes (glowing with gradient)
     ctx.globalAlpha = 1;
-    ctx.fillStyle = '#FFCC66';
-    ctx.beginPath(); ctx.arc(cx - 5, cy - 6, 3, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(cx + 5, cy - 6, 3, 0, Math.PI * 2); ctx.fill();
+    var eyeGlowL = ctx.createRadialGradient(cx-5, cy-6, 0.5, cx-5, cy-6, 4);
+    eyeGlowL.addColorStop(0, '#FFEE99');
+    eyeGlowL.addColorStop(0.5, '#FFCC66');
+    eyeGlowL.addColorStop(1, 'rgba(255,204,102,0)');
+    ctx.fillStyle = eyeGlowL;
+    ctx.beginPath(); ctx.arc(cx - 5, cy - 6, 4, 0, Math.PI * 2); ctx.fill();
+    var eyeGlowR = ctx.createRadialGradient(cx+5, cy-6, 0.5, cx+5, cy-6, 4);
+    eyeGlowR.addColorStop(0, '#FFEE99');
+    eyeGlowR.addColorStop(0.5, '#FFCC66');
+    eyeGlowR.addColorStop(1, 'rgba(255,204,102,0)');
+    ctx.fillStyle = eyeGlowR;
+    ctx.beginPath(); ctx.arc(cx + 5, cy - 6, 4, 0, Math.PI * 2); ctx.fill();
+    // Eye core
     ctx.fillStyle = '#FFE888';
     ctx.beginPath(); ctx.arc(cx - 5, cy - 6, 1.5, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx + 5, cy - 6, 1.5, 0, Math.PI * 2); ctx.fill();
@@ -3852,34 +4249,76 @@ class BuuBlob extends Enemy {
     var cx = this.x + this.w/2; var cy = this.y + this.h/2;
     var r = this.w / 2;
     var fc = this.flashTimer > 0 ? '#FFF' : null;
-    // Main bubblegum body (bright pink)
-    ctx.fillStyle = fc || '#FF88CC';
+    // Drop shadow
+    drawSpriteDropShadow(ctx, cx, cy + r + 3, r * 0.8, r * 0.2);
+    // Main bubblegum body with radial gradient
+    if (!fc) {
+      var bodyGrad = ctx.createRadialGradient(cx - r*0.2, cy - r*0.2, r*0.1, cx, cy, r);
+      bodyGrad.addColorStop(0, '#FFAADD');
+      bodyGrad.addColorStop(0.6, '#FF88CC');
+      bodyGrad.addColorStop(1, '#DD66AA');
+      ctx.fillStyle = bodyGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
-    // Wobble bumps (lighter pink)
-    ctx.fillStyle = fc || '#FFAADD';
+    // Body outline
+    ctx.strokeStyle = 'rgba(180,50,100,0.2)';
+    ctx.lineWidth = Math.max(1, r * 0.07);
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+    // Wobble bumps with gradient
+    if (!fc) {
+      var bumpGrad = ctx.createRadialGradient(cx - r*0.45, cy - r*0.35, 1, cx - r*0.4, cy - r*0.3, r*0.4);
+      bumpGrad.addColorStop(0, '#FFCCEE');
+      bumpGrad.addColorStop(1, '#FFAADD');
+      ctx.fillStyle = bumpGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.arc(cx - r*0.4, cy - r*0.3, r*0.4, 0, Math.PI * 2); ctx.fill();
+    if (!fc) {
+      var bumpGrad2 = ctx.createRadialGradient(cx + r*0.25, cy + r*0.15, 1, cx + r*0.3, cy + r*0.2, r*0.35);
+      bumpGrad2.addColorStop(0, '#FFCCEE');
+      bumpGrad2.addColorStop(1, '#FFAADD');
+      ctx.fillStyle = bumpGrad2;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.arc(cx + r*0.3, cy + r*0.2, r*0.35, 0, Math.PI * 2); ctx.fill();
-    // Shine highlight
-    ctx.fillStyle = 'rgba(255,255,255,0.35)';
-    ctx.beginPath(); ctx.arc(cx - r*0.3, cy - r*0.3, r*0.3, 0, Math.PI * 2); ctx.fill();
-    // Happy eyes
+    // Shine highlight with gradient
+    ctx.save();
+    var shineGrad = ctx.createRadialGradient(cx - r*0.3, cy - r*0.3, 0, cx - r*0.3, cy - r*0.3, r*0.35);
+    shineGrad.addColorStop(0, 'rgba(255,255,255,0.5)');
+    shineGrad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = shineGrad;
+    ctx.beginPath(); ctx.arc(cx - r*0.3, cy - r*0.3, r*0.35, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    // Happy eyes with shine
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath(); ctx.arc(cx - r*0.25, cy - r*0.15, r*0.2, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx + r*0.25, cy - r*0.15, r*0.2, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#222';
     ctx.beginPath(); ctx.arc(cx - r*0.2, cy - r*0.1, r*0.1, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx + r*0.3, cy - r*0.1, r*0.1, 0, Math.PI * 2); ctx.fill();
+    // Eye shine
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(cx - r*0.25, cy - r*0.2, r*0.06, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + r*0.22, cy - r*0.2, r*0.06, 0, Math.PI * 2); ctx.fill();
     // Cute smiley mouth
     ctx.strokeStyle = '#DD4488';
     ctx.lineWidth = Math.max(1.5, r * 0.1);
     ctx.beginPath(); ctx.arc(cx, cy + r*0.15, r*0.25, 0.2, Math.PI - 0.2); ctx.stroke();
-    // Bubblegum stretch antenna
-    ctx.strokeStyle = fc || '#FF88CC';
+    // Bubblegum stretch antenna with gradient
+    if (!fc) {
+      ctx.strokeStyle = '#FF88CC';
+    } else { ctx.strokeStyle = fc; }
     ctx.lineWidth = Math.max(2, r * 0.15);
     ctx.beginPath(); ctx.moveTo(cx, cy - r); ctx.quadraticCurveTo(cx + r*0.8, cy - r - r*0.8, cx + r*0.4, cy - r - r*0.5); ctx.stroke();
-    // Bubble at end of antenna
-    ctx.fillStyle = fc || '#FFAADD';
+    // Bubble at end of antenna with shine
+    if (!fc) {
+      var bubGrad = ctx.createRadialGradient(cx + r*0.35, cy - r - r*0.55, 1, cx + r*0.4, cy - r - r*0.5, r*0.22);
+      bubGrad.addColorStop(0, '#FFCCEE');
+      bubGrad.addColorStop(1, '#FFAADD');
+      ctx.fillStyle = bubGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.arc(cx + r*0.4, cy - r - r*0.5, r*0.2, 0, Math.PI * 2); ctx.fill();
+    // Bubble shine
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.beginPath(); ctx.arc(cx + r*0.35, cy - r - r*0.55, r*0.08, 0, Math.PI * 2); ctx.fill();
     this.drawHealthBar(ctx);
   }
 }
@@ -4084,21 +4523,44 @@ class GiantMechRobot extends Boss {
     if (!this.alive) return;
     var x = this.x, y = this.y;
     var fc = this.flashTimer > 0 ? '#FFF' : null;
-    // cupcake wrapper (bottom) - trapezoid
-    ctx.fillStyle = fc || '#CC8866';
+    // Drop shadow for boss
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+    ctx.beginPath(); ctx.ellipse(x + 48, y + 132, 40, 8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    // cupcake wrapper with gradient
+    if (!fc) {
+      var wrapGrad = ctx.createLinearGradient(x + 16, y + 100, x + 16, y + 128);
+      wrapGrad.addColorStop(0, '#DDAA88');
+      wrapGrad.addColorStop(1, '#AA7755');
+      ctx.fillStyle = wrapGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath();
     ctx.moveTo(x + 16, y + 100); ctx.lineTo(x + 80, y + 100);
     ctx.lineTo(x + 74, y + 128); ctx.lineTo(x + 22, y + 128);
     ctx.closePath(); ctx.fill();
-    // wrapper ridges
-    ctx.strokeStyle = fc || '#AA6644';
+    // wrapper ridges with gradient
+    ctx.strokeStyle = fc || 'rgba(140,80,50,0.5)';
     ctx.lineWidth = 1;
     for (var i = 0; i < 6; i++) {
       var rx = x + 24 + i * 9;
       ctx.beginPath(); ctx.moveTo(rx, y + 100); ctx.lineTo(rx - 1, y + 128); ctx.stroke();
     }
-    // cake body (middle) - rounded rectangle
-    ctx.fillStyle = fc || '#FFCCAA';
+    // wrapper outline
+    ctx.strokeStyle = 'rgba(100,60,30,0.3)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x + 16, y + 100); ctx.lineTo(x + 80, y + 100);
+    ctx.lineTo(x + 74, y + 128); ctx.lineTo(x + 22, y + 128);
+    ctx.closePath(); ctx.stroke();
+    // cake body with gradient
+    if (!fc) {
+      var cakeGrad = ctx.createLinearGradient(x + 12, y + 60, x + 12, y + 100);
+      cakeGrad.addColorStop(0, '#FFE0CC');
+      cakeGrad.addColorStop(0.5, '#FFCCAA');
+      cakeGrad.addColorStop(1, '#EEAA88');
+      ctx.fillStyle = cakeGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath();
     ctx.moveTo(x + 18, y + 60); ctx.lineTo(x + 78, y + 60);
     ctx.quadraticCurveTo(x + 84, y + 60, x + 84, y + 66);
@@ -4109,58 +4571,115 @@ class GiantMechRobot extends Boss {
     ctx.lineTo(x + 12, y + 66);
     ctx.quadraticCurveTo(x + 12, y + 60, x + 18, y + 60);
     ctx.closePath(); ctx.fill();
-    // frosting top - big pink dome
-    ctx.fillStyle = fc || '#FF88BB';
+    // cake body outline
+    ctx.strokeStyle = 'rgba(160,100,60,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x + 18, y + 60); ctx.lineTo(x + 78, y + 60);
+    ctx.quadraticCurveTo(x + 84, y + 60, x + 84, y + 66);
+    ctx.lineTo(x + 84, y + 94);
+    ctx.quadraticCurveTo(x + 84, y + 100, x + 78, y + 100);
+    ctx.lineTo(x + 18, y + 100);
+    ctx.quadraticCurveTo(x + 12, y + 100, x + 12, y + 94);
+    ctx.lineTo(x + 12, y + 66);
+    ctx.quadraticCurveTo(x + 12, y + 60, x + 18, y + 60);
+    ctx.closePath(); ctx.stroke();
+    // frosting top with gradient dome
+    if (!fc) {
+      var frostGrad = ctx.createRadialGradient(x + 48, y + 30, 5, x + 48, y + 40, 40);
+      frostGrad.addColorStop(0, '#FFAACC');
+      frostGrad.addColorStop(0.5, '#FF88BB');
+      frostGrad.addColorStop(1, '#DD6699');
+      ctx.fillStyle = frostGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath();
     ctx.arc(x + 48, y + 40, 38, Math.PI, 0);
     ctx.lineTo(x + 86, y + 60); ctx.lineTo(x + 10, y + 60);
     ctx.closePath(); ctx.fill();
-    // frosting swirls
-    ctx.fillStyle = fc || '#FFAACC';
-    ctx.beginPath(); ctx.arc(x + 30, y + 32, 8, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(x + 48, y + 22, 9, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(x + 66, y + 32, 8, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(x + 40, y + 42, 7, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(x + 56, y + 42, 7, 0, Math.PI * 2); ctx.fill();
-    // sprinkle decorations on frosting
+    // frosting outline
+    ctx.strokeStyle = 'rgba(180,60,100,0.25)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(x + 48, y + 40, 38, Math.PI, 0); ctx.stroke();
+    // frosting swirls with gradients
+    var swirlPositions = [[x+30,y+32,8],[x+48,y+22,9],[x+66,y+32,8],[x+40,y+42,7],[x+56,y+42,7]];
+    for (var si = 0; si < swirlPositions.length; si++) {
+      var sp = swirlPositions[si];
+      if (!fc) {
+        var swirlGrad = ctx.createRadialGradient(sp[0]-1, sp[1]-1, 1, sp[0], sp[1], sp[2]);
+        swirlGrad.addColorStop(0, '#FFCCDD');
+        swirlGrad.addColorStop(1, '#FFAACC');
+        ctx.fillStyle = swirlGrad;
+      } else { ctx.fillStyle = fc; }
+      ctx.beginPath(); ctx.arc(sp[0], sp[1], sp[2], 0, Math.PI * 2); ctx.fill();
+    }
+    // sprinkle decorations on frosting (rounded ellipses)
     var sprinkleColors = ['#FF4444', '#44FF44', '#4444FF', '#FFFF44', '#FF44FF'];
     for (var i = 0; i < 12; i++) {
       ctx.fillStyle = fc || sprinkleColors[i % sprinkleColors.length];
       var sx = x + 20 + Math.sin(i * 2.3) * 24;
       var sy = y + 25 + Math.cos(i * 1.7) * 12;
       ctx.save(); ctx.translate(sx, sy); ctx.rotate(i * 0.8);
-      ctx.fillRect(-3, -1, 6, 2);
+      ctx.beginPath(); ctx.ellipse(0, 0, 3, 1, 0, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
     }
-    // cherry on top (the "core" weak point)
+    // cherry on top with glow when vulnerable
     if (this.vulnerable) {
-      ctx.fillStyle = '#FF4466';
+      var cherryGlow = ctx.createRadialGradient(x + 48, y + 10, 5, x + 48, y + 10, 18);
+      cherryGlow.addColorStop(0, 'rgba(255,68,102,0.6)');
+      cherryGlow.addColorStop(1, 'rgba(255,68,102,0)');
       ctx.globalAlpha = 0.5 + Math.sin(this.age * 10) * 0.3;
-      ctx.beginPath(); ctx.arc(x + 48, y + 10, 14, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = cherryGlow;
+      ctx.beginPath(); ctx.arc(x + 48, y + 10, 18, 0, Math.PI * 2); ctx.fill();
       ctx.globalAlpha = 1;
     }
-    ctx.fillStyle = fc || '#FF4466';
+    // cherry with gradient
+    if (!fc) {
+      var cherryGrad = ctx.createRadialGradient(x + 45, y + 7, 1, x + 48, y + 10, 10);
+      cherryGrad.addColorStop(0, '#FF8888');
+      cherryGrad.addColorStop(0.5, '#FF4466');
+      cherryGrad.addColorStop(1, '#CC2244');
+      ctx.fillStyle = cherryGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.arc(x + 48, y + 10, 10, 0, Math.PI * 2); ctx.fill();
-    // cherry highlight
-    ctx.fillStyle = '#FF8888';
+    // cherry shine
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.beginPath(); ctx.arc(x + 45, y + 7, 3, 0, Math.PI * 2); ctx.fill();
     // cherry stem
     ctx.strokeStyle = fc || '#44AA22';
     ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(x + 48, y + 2); ctx.quadraticCurveTo(x + 52, y - 8, x + 48, y - 10); ctx.stroke();
     ctx.lineWidth = 1;
-    // candy eyes on frosting
+    // candy eyes with gradient and shine
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath(); ctx.arc(x + 38, y + 52, 7, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(x + 58, y + 52, 7, 0, Math.PI * 2); ctx.fill();
+    // eye outline
+    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.arc(x + 38, y + 52, 7, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x + 58, y + 52, 7, 0, Math.PI * 2); ctx.stroke();
     ctx.fillStyle = '#222222';
     ctx.beginPath(); ctx.arc(x + 36, y + 53, 3, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(x + 56, y + 53, 3, 0, Math.PI * 2); ctx.fill();
-    // cookie stick arms (brown rectangles)
-    ctx.fillStyle = fc || '#AA7744';
+    // Eye shine
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(x + 37, y + 51, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + 57, y + 51, 1.5, 0, Math.PI * 2); ctx.fill();
+    // cookie stick arms with gradient
+    if (!fc) {
+      var armGrad = ctx.createLinearGradient(x - 12, y + 60, x - 12, y + 78);
+      armGrad.addColorStop(0, '#CC9966');
+      armGrad.addColorStop(1, '#AA7744');
+      ctx.fillStyle = armGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.fillRect(x - 4, y + 65, 18, 8);
     ctx.fillRect(x + 82, y + 65, 18, 8);
-    ctx.fillStyle = fc || '#CC9966';
+    if (!fc) {
+      var handGrad = ctx.createLinearGradient(x - 12, y + 60, x + 2, y + 78);
+      handGrad.addColorStop(0, '#DDAA77');
+      handGrad.addColorStop(1, '#BB8855');
+      ctx.fillStyle = handGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.fillRect(x - 12, y + 60, 14, 18);
     ctx.fillRect(x + 94, y + 60, 14, 18);
     // laser effect (pink frosting beam)
@@ -4274,8 +4793,26 @@ class AlienTyrant extends Boss {
     var fc = this.flashTimer > 0 ? '#FFF' : null;
     var mainColor = this.transformed ? '#AAFFAA' : (fc || COLORS.bossLevel2Purple);
     var bellyColor = this.transformed ? '#CCFFCC' : (fc || '#AAFFAA');
-    // serpentine body - long curved shape
-    ctx.fillStyle = fc || mainColor;
+    // Drop shadow for boss
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+    ctx.beginPath(); ctx.ellipse(x + 64, y + 145, 50, 8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    // serpentine body with gradient
+    ctx.save();
+    if (!fc) {
+      var bodyGrad = ctx.createLinearGradient(x + 10, y + 50, x + 110, y + 140);
+      if (this.transformed) {
+        bodyGrad.addColorStop(0, '#CCFFCC');
+        bodyGrad.addColorStop(0.5, '#AAFFAA');
+        bodyGrad.addColorStop(1, '#77DD77');
+      } else {
+        bodyGrad.addColorStop(0, '#99DD99');
+        bodyGrad.addColorStop(0.5, COLORS.bossLevel2Purple);
+        bodyGrad.addColorStop(1, '#55AA55');
+      }
+      ctx.fillStyle = bodyGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath();
     ctx.moveTo(x + 20, y + 50);
     ctx.quadraticCurveTo(x + 64, y + 35, x + 100, y + 55);
@@ -4285,23 +4822,60 @@ class AlienTyrant extends Boss {
     ctx.quadraticCurveTo(x + 10, y + 120, x + 10, y + 90);
     ctx.quadraticCurveTo(x + 10, y + 65, x + 20, y + 50);
     ctx.closePath(); ctx.fill();
-    // belly (lighter)
-    ctx.fillStyle = fc || bellyColor;
+    // Body outline
+    ctx.strokeStyle = 'rgba(30,80,30,0.25)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x + 20, y + 50);
+    ctx.quadraticCurveTo(x + 64, y + 35, x + 100, y + 55);
+    ctx.quadraticCurveTo(x + 120, y + 70, x + 110, y + 100);
+    ctx.quadraticCurveTo(x + 100, y + 130, x + 80, y + 140);
+    ctx.lineTo(x + 40, y + 140);
+    ctx.quadraticCurveTo(x + 10, y + 120, x + 10, y + 90);
+    ctx.quadraticCurveTo(x + 10, y + 65, x + 20, y + 50);
+    ctx.closePath(); ctx.stroke();
+    ctx.restore();
+    // belly with gradient
+    if (!fc) {
+      var bellyGrad = ctx.createRadialGradient(x + 60, y + 90, 5, x + 60, y + 95, 36);
+      bellyGrad.addColorStop(0, this.transformed ? '#EEFFEE' : '#CCFFCC');
+      bellyGrad.addColorStop(1, bellyColor);
+      ctx.fillStyle = bellyGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath();
     ctx.ellipse(x + 60, y + 95, 25, 35, 0, 0, Math.PI * 2);
     ctx.fill();
-    // gumdrop scale dots on body
+    // gumdrop scale dots with gradient
     var scaleColors = ['#66CC22', '#77DD33', '#55BB11'];
     for (var i = 0; i < 8; i++) {
-      ctx.fillStyle = fc || scaleColors[i % 3];
       var sx = x + 25 + Math.sin(i * 1.5) * 20 + (i % 3) * 10;
       var sy = y + 55 + i * 10;
+      if (!fc) {
+        var scaleGrad = ctx.createRadialGradient(sx - 1, sy - 1, 0.5, sx, sy, 4);
+        scaleGrad.addColorStop(0, '#AAFF66');
+        scaleGrad.addColorStop(1, scaleColors[i % 3]);
+        ctx.fillStyle = scaleGrad;
+      } else { ctx.fillStyle = fc; }
       ctx.beginPath(); ctx.arc(sx, sy, 4, 0, Math.PI * 2); ctx.fill();
     }
-    // head - round candy dragon head
-    ctx.fillStyle = fc || mainColor;
+    // head with radial gradient
+    if (!fc) {
+      var headGrad = ctx.createRadialGradient(x + 60, y + 22, 5, x + 64, y + 28, 28);
+      if (this.transformed) {
+        headGrad.addColorStop(0, '#DDFFDD');
+        headGrad.addColorStop(1, '#AAFFAA');
+      } else {
+        headGrad.addColorStop(0, '#AADDAA');
+        headGrad.addColorStop(1, COLORS.bossLevel2Purple);
+      }
+      ctx.fillStyle = headGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.arc(x + 64, y + 28, 26, 0, Math.PI * 2); ctx.fill();
-    // candy cane horns (red/white striped)
+    // head outline
+    ctx.strokeStyle = 'rgba(30,80,30,0.2)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(x + 64, y + 28, 26, 0, Math.PI * 2); ctx.stroke();
+    // candy cane horns with rounded segments
     for (var h = 0; h < 2; h++) {
       var hx = h === 0 ? x + 42 : x + 86;
       var dir = h === 0 ? -1 : 1;
@@ -4309,21 +4883,43 @@ class AlienTyrant extends Boss {
         ctx.fillStyle = fc || (s % 2 === 0 ? '#FF4444' : '#FFFFFF');
         var hornY = y + 10 - s * 5;
         var hornX = hx + dir * s * 2;
-        ctx.fillRect(hornX - 3, hornY, 6, 6);
+        ctx.beginPath(); ctx.ellipse(hornX, hornY + 3, 3.5, 3.5, 0, 0, Math.PI * 2); ctx.fill();
       }
     }
-    // big friendly-ish eyes
+    // big eyes with gradient iris and shine
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath(); ctx.arc(x + 54, y + 24, 9, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(x + 74, y + 24, 9, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = this.transformed ? '#FF4488' : '#44AA44';
+    // eye outline
+    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.arc(x + 54, y + 24, 9, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x + 74, y + 24, 9, 0, Math.PI * 2); ctx.stroke();
+    // Iris with gradient
+    var irisColor = this.transformed ? '#FF4488' : '#44AA44';
+    var irisHL = this.transformed ? '#FF88AA' : '#88DD88';
+    var irisGradL = ctx.createRadialGradient(x + 54, y + 24, 1, x + 55, y + 25, 6);
+    irisGradL.addColorStop(0, irisHL); irisGradL.addColorStop(1, irisColor);
+    ctx.fillStyle = irisGradL;
     ctx.beginPath(); ctx.arc(x + 55, y + 25, 5, 0, Math.PI * 2); ctx.fill();
+    var irisGradR = ctx.createRadialGradient(x + 72, y + 24, 1, x + 73, y + 25, 6);
+    irisGradR.addColorStop(0, irisHL); irisGradR.addColorStop(1, irisColor);
+    ctx.fillStyle = irisGradR;
     ctx.beginPath(); ctx.arc(x + 73, y + 25, 5, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#000000';
     ctx.beginPath(); ctx.arc(x + 55, y + 25, 2, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(x + 73, y + 25, 2, 0, Math.PI * 2); ctx.fill();
-    // wafer cookie wings
-    ctx.fillStyle = fc || '#FFCC88';
+    // Eye shine
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(x + 53, y + 22, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + 72, y + 22, 2, 0, Math.PI * 2); ctx.fill();
+    // wafer wings with gradient
+    if (!fc) {
+      var wingGrad = ctx.createLinearGradient(x - 20, y + 30, x + 15, y + 70);
+      wingGrad.addColorStop(0, '#FFE0AA');
+      wingGrad.addColorStop(1, '#FFCC88');
+      ctx.fillStyle = wingGrad;
+    } else { ctx.fillStyle = fc; }
     // left wing
     ctx.beginPath();
     ctx.moveTo(x + 15, y + 55);
@@ -4336,12 +4932,25 @@ class AlienTyrant extends Boss {
     ctx.lineTo(x + 140, y + 30 + Math.sin(this.age * 4) * 8);
     ctx.lineTo(x + 135, y + 70);
     ctx.closePath(); ctx.fill();
+    // wing outlines
+    ctx.strokeStyle = 'rgba(180,140,80,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x + 15, y + 55);
+    ctx.lineTo(x - 20, y + 30 + Math.sin(this.age * 4) * 8);
+    ctx.lineTo(x - 15, y + 70);
+    ctx.closePath(); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x + 105, y + 55);
+    ctx.lineTo(x + 140, y + 30 + Math.sin(this.age * 4) * 8);
+    ctx.lineTo(x + 135, y + 70);
+    ctx.closePath(); ctx.stroke();
     // wafer grid lines on wings
     ctx.strokeStyle = fc || '#DDAA66';
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x - 10, y + 40); ctx.lineTo(x + 5, y + 65); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(x + 130, y + 40); ctx.lineTo(x + 115, y + 65); ctx.stroke();
-    // licorice whip tail
+    // licorice whip tail with varying width
     ctx.strokeStyle = fc || COLORS.bossLevel2Tail;
     ctx.lineWidth = 6;
     ctx.beginPath();
@@ -4349,9 +4958,21 @@ class AlienTyrant extends Boss {
     ctx.quadraticCurveTo(x + 120, y + 140 + Math.sin(this.age * 3) * 15, x + 130, y + 120);
     ctx.quadraticCurveTo(x + 135, y + 105, x + 125, y + 95);
     ctx.stroke();
+    // tail highlight
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x + 82, y + 136);
+    ctx.quadraticCurveTo(x + 118, y + 138 + Math.sin(this.age * 3) * 15, x + 128, y + 119);
+    ctx.stroke();
     ctx.lineWidth = 1;
-    // small mouth
-    ctx.fillStyle = fc || '#FF6688';
+    // small mouth with gradient
+    if (!fc) {
+      var mouthGrad = ctx.createRadialGradient(x + 64, y + 38, 1, x + 64, y + 40, 6);
+      mouthGrad.addColorStop(0, '#FF8899');
+      mouthGrad.addColorStop(1, '#FF6688');
+      ctx.fillStyle = mouthGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.arc(x + 64, y + 38, 5, 0, Math.PI); ctx.fill();
     // supernova charge effect
     if (this.currentAttack === 'supernova' && this.attackDuration < 1.5) {
@@ -4492,13 +5113,23 @@ class CosmicDemonKing extends Boss {
     if (!this.alive) return;
     var x = this.x, y = this.y;
     var fc = this.flashTimer > 0 ? '#FFF' : null;
-    // golden sparkle glow aura (replaces dark aura)
+    // Drop shadow
     ctx.save();
-    ctx.globalAlpha = this.berserk ? 0.35 : 0.2;
-    ctx.fillStyle = COLORS.bossLevel3Glow;
-    ctx.beginPath(); ctx.arc(x + 96, y + 110, 130 + Math.sin(this.age * 2) * 10, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+    ctx.beginPath(); ctx.ellipse(x + 96, y + 200, 65, 10, 0, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
-    // golden sparkle particles around aura
+    // golden sparkle glow aura with gradient
+    ctx.save();
+    var auraR = 130 + Math.sin(this.age * 2) * 10;
+    var auraGrad = ctx.createRadialGradient(x + 96, y + 110, 30, x + 96, y + 110, auraR);
+    auraGrad.addColorStop(0, 'rgba(255,215,0,0.15)');
+    auraGrad.addColorStop(0.7, 'rgba(255,215,0,0.08)');
+    auraGrad.addColorStop(1, 'rgba(255,215,0,0)');
+    ctx.globalAlpha = this.berserk ? 0.5 : 0.3;
+    ctx.fillStyle = auraGrad;
+    ctx.beginPath(); ctx.arc(x + 96, y + 110, auraR, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    // golden sparkle particles (star shapes)
     ctx.save();
     for (var i = 0; i < 8; i++) {
       var sparkAngle = this.age * 1.5 + i * (Math.PI * 2 / 8);
@@ -4507,113 +5138,221 @@ class CosmicDemonKing extends Boss {
       var sparkY = y + 110 + Math.sin(sparkAngle) * sparkDist;
       ctx.globalAlpha = 0.3 + Math.sin(this.age * 5 + i * 2) * 0.2;
       ctx.fillStyle = '#FFD700';
-      ctx.beginPath(); ctx.arc(sparkX, sparkY, 3 + Math.sin(this.age * 4 + i) * 1.5, 0, Math.PI * 2); ctx.fill();
+      var sr = 3 + Math.sin(this.age * 4 + i) * 1.5;
+      ctx.beginPath();
+      for (var s = 0; s < 4; s++) {
+        var sa = s * Math.PI / 2;
+        ctx.moveTo(sparkX + Math.cos(sa) * sr, sparkY + Math.sin(sa) * sr);
+        ctx.lineTo(sparkX + Math.cos(sa + Math.PI/4) * sr * 0.4, sparkY + Math.sin(sa + Math.PI/4) * sr * 0.4);
+      }
+      ctx.closePath(); ctx.fill();
     }
     ctx.restore();
     // === 3-TIER WEDDING CAKE BODY ===
-    // bottom tier (widest) - white with pink trim
-    ctx.fillStyle = fc || '#FFFFFF';
+    // bottom tier with gradient
+    if (!fc) {
+      var btGrad = ctx.createLinearGradient(x + 30, y + 140, x + 30, y + 195);
+      btGrad.addColorStop(0, '#FFFFFF');
+      btGrad.addColorStop(0.5, '#FAFAFA');
+      btGrad.addColorStop(1, '#EEEEE8');
+      ctx.fillStyle = btGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.fillRect(x + 30, y + 140, 132, 55);
-    // pink trim on bottom tier
-    ctx.fillStyle = fc || '#FFD4E8';
+    // bottom tier outline
+    ctx.strokeStyle = 'rgba(180,150,130,0.2)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x + 30, y + 140, 132, 55);
+    // pink trim with gradient
+    if (!fc) {
+      var trimGrad = ctx.createLinearGradient(x + 30, y + 140, x + 162, y + 140);
+      trimGrad.addColorStop(0, '#FFCCDD');
+      trimGrad.addColorStop(0.5, '#FFD4E8');
+      trimGrad.addColorStop(1, '#FFCCDD');
+      ctx.fillStyle = trimGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.fillRect(x + 30, y + 140, 132, 6);
     ctx.fillRect(x + 30, y + 189, 132, 6);
-    // pink trim scallops on bottom tier
+    // pink trim scallops with subtle shadow
     for (var i = 0; i < 7; i++) {
       ctx.fillStyle = fc || '#FFD4E8';
       ctx.beginPath(); ctx.arc(x + 40 + i * 19, y + 175, 6, 0, Math.PI); ctx.fill();
+      // scallop highlight
+      ctx.save(); ctx.globalAlpha = 0.3;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath(); ctx.arc(x + 39 + i * 19, y + 174, 3, 0, Math.PI); ctx.fill();
+      ctx.restore();
     }
-    // middle tier - ivory with gold trim
-    ctx.fillStyle = fc || '#FFFFF0';
+    // middle tier with gradient
+    if (!fc) {
+      var mtGrad = ctx.createLinearGradient(x + 48, y + 85, x + 48, y + 143);
+      mtGrad.addColorStop(0, '#FFFFF5');
+      mtGrad.addColorStop(0.5, '#FFFFF0');
+      mtGrad.addColorStop(1, '#FFF8E0');
+      ctx.fillStyle = mtGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.fillRect(x + 48, y + 85, 96, 58);
-    // gold trim on middle tier
-    ctx.fillStyle = fc || '#FFD700';
+    ctx.strokeStyle = 'rgba(180,150,100,0.15)';
+    ctx.strokeRect(x + 48, y + 85, 96, 58);
+    // gold trim with gradient
+    if (!fc) {
+      var goldGrad = ctx.createLinearGradient(x + 48, y + 85, x + 144, y + 85);
+      goldGrad.addColorStop(0, '#FFCC00');
+      goldGrad.addColorStop(0.5, '#FFD700');
+      goldGrad.addColorStop(1, '#FFCC00');
+      ctx.fillStyle = goldGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.fillRect(x + 48, y + 85, 96, 5);
     ctx.fillRect(x + 48, y + 138, 96, 5);
-    // gold trim scallops on middle tier
+    // gold scallops with highlight
     for (var i = 0; i < 5; i++) {
       ctx.fillStyle = fc || '#FFD700';
       ctx.beginPath(); ctx.arc(x + 58 + i * 19, y + 125, 5, 0, Math.PI); ctx.fill();
+      ctx.save(); ctx.globalAlpha = 0.4;
+      ctx.fillStyle = '#FFEE88';
+      ctx.beginPath(); ctx.arc(x + 57 + i * 19, y + 124, 2.5, 0, Math.PI); ctx.fill();
+      ctx.restore();
     }
-    // top tier (smallest) - with decorative dome top
-    ctx.fillStyle = fc || '#FFFFFF';
+    // top tier with gradient
+    if (!fc) {
+      var ttGrad = ctx.createLinearGradient(x + 66, y + 45, x + 66, y + 88);
+      ttGrad.addColorStop(0, '#FFFFFF');
+      ttGrad.addColorStop(1, '#F8F8F0');
+      ctx.fillStyle = ttGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.fillRect(x + 66, y + 45, 60, 43);
-    // pink decorative trim on top tier
+    ctx.strokeStyle = 'rgba(180,150,130,0.15)';
+    ctx.strokeRect(x + 66, y + 45, 60, 43);
+    // pink decorative trim
     ctx.fillStyle = fc || '#FFD4E8';
     ctx.fillRect(x + 66, y + 45, 60, 4);
     ctx.fillRect(x + 66, y + 84, 60, 4);
-    // decorative dome topper
-    ctx.fillStyle = fc || '#FFFFF0';
+    // dome topper with gradient
+    if (!fc) {
+      var domeGrad = ctx.createRadialGradient(x + 96, y + 38, 3, x + 96, y + 45, 22);
+      domeGrad.addColorStop(0, '#FFFFFF');
+      domeGrad.addColorStop(1, '#FFFFF0');
+      ctx.fillStyle = domeGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.arc(x + 96, y + 45, 20, Math.PI, 0); ctx.fill();
-    // birthday candles on top (crown)
+    // birthday candles with improved flames
     var candleColors = ['#FF6688', '#88CCFF', '#FFDD44', '#88FF88', '#FFAACC'];
     for (var i = 0; i < 5; i++) {
       var cx = x + 76 + i * 10;
       var cy = y + 20;
-      // candle stick
-      ctx.fillStyle = fc || candleColors[i];
+      // candle stick with gradient
+      if (!fc) {
+        var candleGrad = ctx.createLinearGradient(cx - 2, cy, cx + 2, cy);
+        candleGrad.addColorStop(0, candleColors[i]);
+        var lighterCandle = candleColors[i].replace(/[0-9a-f]{2}/gi, function(m) {
+          return Math.min(255, parseInt(m, 16) + 40).toString(16).padStart(2, '0');
+        });
+        candleGrad.addColorStop(0.5, lighterCandle);
+        candleGrad.addColorStop(1, candleColors[i]);
+        ctx.fillStyle = candleGrad;
+      } else { ctx.fillStyle = fc; }
       ctx.fillRect(cx - 2, cy, 4, 18);
-      // flame
-      ctx.fillStyle = fc || '#FFDD44';
-      ctx.beginPath(); ctx.arc(cx, cy - 2, 4, 0, Math.PI * 2); ctx.fill();
-      // flame inner
-      ctx.fillStyle = fc || '#FFFFFF';
-      ctx.beginPath(); ctx.arc(cx, cy - 1, 2, 0, Math.PI * 2); ctx.fill();
-      // flame flicker
-      ctx.fillStyle = '#FFAA22';
-      ctx.globalAlpha = 0.5 + Math.sin(this.age * 8 + i * 1.3) * 0.3;
-      ctx.beginPath(); ctx.arc(cx, cy - 4, 3 + Math.sin(this.age * 10 + i) * 1.5, 0, Math.PI * 2); ctx.fill();
-      ctx.globalAlpha = 1;
+      // flame with radial gradient
+      var flameR = 3 + Math.sin(this.age * 10 + i) * 1.5;
+      var flameGrad = ctx.createRadialGradient(cx, cy - 2, 0, cx, cy - 2, flameR + 2);
+      flameGrad.addColorStop(0, 'rgba(255,255,255,0.9)');
+      flameGrad.addColorStop(0.3, 'rgba(255,238,68,0.8)');
+      flameGrad.addColorStop(0.7, 'rgba(255,170,34,0.5)');
+      flameGrad.addColorStop(1, 'rgba(255,100,0,0)');
+      ctx.fillStyle = flameGrad;
+      ctx.beginPath(); ctx.arc(cx, cy - 2, flameR + 2, 0, Math.PI * 2); ctx.fill();
+      // flame core
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath(); ctx.arc(cx, cy - 1, 1.5, 0, Math.PI * 2); ctx.fill();
     }
-    // candy eyes on the middle tier
+    // candy eyes with gradient iris and shine
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath(); ctx.arc(x + 82, y + 105, 8, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(x + 110, y + 105, 8, 0, Math.PI * 2); ctx.fill();
-    // eye color
-    ctx.fillStyle = this.berserk ? '#FF4488' : COLORS.bossLevel3Eyes;
+    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.arc(x + 82, y + 105, 8, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x + 110, y + 105, 8, 0, Math.PI * 2); ctx.stroke();
+    // eye iris with gradient
+    var eyeCol = this.berserk ? '#FF4488' : COLORS.bossLevel3Eyes;
+    var eyeHL = this.berserk ? '#FF88AA' : '#AADDFF';
     var eyeSize = this.berserk ? 5 : 4;
+    var eGradL = ctx.createRadialGradient(x + 79, y + 105, 1, x + 80, y + 106, eyeSize + 1);
+    eGradL.addColorStop(0, eyeHL); eGradL.addColorStop(1, eyeCol);
+    ctx.fillStyle = eGradL;
     ctx.beginPath(); ctx.arc(x + 80, y + 106, eyeSize, 0, Math.PI * 2); ctx.fill();
+    var eGradR = ctx.createRadialGradient(x + 107, y + 105, 1, x + 108, y + 106, eyeSize + 1);
+    eGradR.addColorStop(0, eyeHL); eGradR.addColorStop(1, eyeCol);
+    ctx.fillStyle = eGradR;
     ctx.beginPath(); ctx.arc(x + 108, y + 106, eyeSize, 0, Math.PI * 2); ctx.fill();
     // pupils
     ctx.fillStyle = '#000000';
     ctx.beginPath(); ctx.arc(x + 80, y + 106, 2, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(x + 108, y + 106, 2, 0, Math.PI * 2); ctx.fill();
-    // mouth on middle tier
-    ctx.fillStyle = fc || '#FF88AA';
+    // eye shine
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(x + 81, y + 103, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + 109, y + 103, 2, 0, Math.PI * 2); ctx.fill();
+    // mouth with gradient
+    if (!fc) {
+      var mouthGrad = ctx.createRadialGradient(x + 96, y + 118, 2, x + 96, y + 122, 10);
+      mouthGrad.addColorStop(0, '#FF6688');
+      mouthGrad.addColorStop(1, '#FF88AA');
+      ctx.fillStyle = mouthGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.arc(x + 96, y + 120, 8, 0, Math.PI); ctx.fill();
-    // fondant decorative arms
-    ctx.fillStyle = fc || '#FFE4CC';
+    // fondant arms with gradient
+    if (!fc) {
+      var armGrad = ctx.createLinearGradient(x + 16, y + 95, x + 16, y + 111);
+      armGrad.addColorStop(0, '#FFF0DD');
+      armGrad.addColorStop(1, '#FFE4CC');
+      ctx.fillStyle = armGrad;
+    } else { ctx.fillStyle = fc; }
     ctx.fillRect(x + 16, y + 95, 34, 16);
     ctx.fillRect(x + 142, y + 95, 34, 16);
-    // fondant arm hands (rounded ends)
-    ctx.fillStyle = fc || '#FFD4BB';
+    // fondant hands with gradient
+    if (!fc) {
+      var handGradL = ctx.createRadialGradient(x + 14, y + 101, 2, x + 16, y + 103, 11);
+      handGradL.addColorStop(0, '#FFE8CC');
+      handGradL.addColorStop(1, '#FFD4BB');
+      ctx.fillStyle = handGradL;
+    } else { ctx.fillStyle = fc; }
     ctx.beginPath(); ctx.arc(x + 16, y + 103, 10, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(x + 176, y + 103, 10, 0, Math.PI * 2); ctx.fill();
     // extra fondant arms (phase 2+)
     if (this.extraArms) {
-      ctx.fillStyle = fc || '#FFE4CC';
+      if (!fc) { ctx.fillStyle = armGrad; } else { ctx.fillStyle = fc; }
       ctx.fillRect(x + 20, y + 150, 32, 14);
       ctx.fillRect(x + 140, y + 150, 32, 14);
-      ctx.fillStyle = fc || '#FFD4BB';
+      if (!fc) { ctx.fillStyle = handGradL; } else { ctx.fillStyle = fc; }
       ctx.beginPath(); ctx.arc(x + 20, y + 157, 9, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.arc(x + 172, y + 157, 9, 0, Math.PI * 2); ctx.fill();
     }
-    // frosting stream effect (replaces mouth beam, purple to pink)
+    // frosting stream with gradient beam
     if (this.currentAttack === 'mouthBeam' && this.attackDuration > 0.8 && this.attackDuration < 2.3) {
       var beamY = y + 80 + Math.sin(this.attackDuration * 3) * 40;
       ctx.save();
-      ctx.globalAlpha = 0.3;
-      ctx.fillStyle = '#FF88CC';
-      ctx.fillRect(0, beamY - 14, x + 50, 28);
-      ctx.globalAlpha = 0.6;
-      ctx.fillStyle = '#FFAADD';
+      // outer glow
+      var beamGlow = ctx.createLinearGradient(0, beamY - 16, 0, beamY + 16);
+      beamGlow.addColorStop(0, 'rgba(255,136,204,0)');
+      beamGlow.addColorStop(0.3, 'rgba(255,136,204,0.2)');
+      beamGlow.addColorStop(0.5, 'rgba(255,136,204,0.35)');
+      beamGlow.addColorStop(0.7, 'rgba(255,136,204,0.2)');
+      beamGlow.addColorStop(1, 'rgba(255,136,204,0)');
+      ctx.fillStyle = beamGlow;
+      ctx.fillRect(0, beamY - 16, x + 50, 32);
+      // main beam with gradient
+      var beamMain = ctx.createLinearGradient(0, beamY - 8, 0, beamY + 8);
+      beamMain.addColorStop(0, 'rgba(255,170,221,0.4)');
+      beamMain.addColorStop(0.5, 'rgba(255,170,221,0.7)');
+      beamMain.addColorStop(1, 'rgba(255,170,221,0.4)');
+      ctx.fillStyle = beamMain;
       ctx.fillRect(0, beamY - 8, x + 50, 16);
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = '#FFFFFF';
+      // core
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
       ctx.fillRect(0, beamY - 2, x + 50, 4);
       ctx.restore();
     }
-    // berserk warm golden glow overlay (replaces dark overlay)
+    // berserk golden glow overlay
     if (this.berserk) {
       ctx.save();
       ctx.globalAlpha = 0.08 + Math.sin(this.age * 8) * 0.04;
@@ -4644,30 +5383,54 @@ function drawLevelBackground(ctx, level, scrollX, age) {
 }
 
 function drawEarthBg(ctx, scrollX, age) {
-  // sky: soft pink gradient
+  // sky: soft pink gradient with more depth
   var skyGrd = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
   skyGrd.addColorStop(0, '#FFD4E8');
-  skyGrd.addColorStop(1, '#FFBBDD');
+  skyGrd.addColorStop(0.4, '#FFCCDD');
+  skyGrd.addColorStop(0.7, '#FFBBDD');
+  skyGrd.addColorStop(1, '#FFAACC');
   ctx.fillStyle = skyGrd;
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-  // cotton candy clouds (pink and blue fluffy shapes)
+  // Subtle sun glow in upper right
+  ctx.save();
+  var sunGlow = ctx.createRadialGradient(760, 50, 10, 760, 50, 120);
+  sunGlow.addColorStop(0, 'rgba(255,240,200,0.35)');
+  sunGlow.addColorStop(0.5, 'rgba(255,220,180,0.15)');
+  sunGlow.addColorStop(1, 'rgba(255,200,160,0)');
+  ctx.fillStyle = sunGlow;
+  ctx.fillRect(600, 0, 360, 200);
+  ctx.restore();
+  // cotton candy clouds with gradient
   var farOff = -(scrollX * 0.1) % CANVAS_W;
   for (var i = 0; i < 6; i++) {
     var cx = ((i * 200 + farOff) % (CANVAS_W + 200)) - 100;
     var cy = 40 + (i % 3) * 35;
-    ctx.fillStyle = (i % 2 === 0) ? '#FFCCEE' : '#CCDDFF';
-    drawCloud(ctx, cx, cy, 30 + (i % 2) * 15);
+    var cloudR = 30 + (i % 2) * 15;
+    // Cloud shadow
+    ctx.save();
+    ctx.globalAlpha = 0.08;
+    ctx.fillStyle = '#AA6688';
+    drawCloud(ctx, cx + 2, cy + 3, cloudR);
+    ctx.restore();
+    // Main cloud with gradient
+    var cloudGrad = ctx.createRadialGradient(cx - cloudR * 0.2, cy - cloudR * 0.3, cloudR * 0.2, cx, cy, cloudR * 1.2);
+    cloudGrad.addColorStop(0, '#FFFFFF');
+    cloudGrad.addColorStop(1, (i % 2 === 0) ? '#FFCCEE' : '#CCDDFF');
+    ctx.fillStyle = cloudGrad;
+    drawCloud(ctx, cx, cy, cloudR);
   }
-  // candy cane mountains: striped red/white peaks
+  // candy cane mountains with gradient
   var mOff = -(scrollX * 0.2) % 400;
   for (var i = -1; i < 5; i++) {
     var mx = i * 300 + mOff;
     var peakY = 180 + (i % 2) * 30;
-    // white base triangle
-    ctx.fillStyle = '#FFFFFF';
+    // Mountain gradient (white to slightly pink at base)
+    var mtGrad = ctx.createLinearGradient(mx + 150, peakY, mx + 150, 350);
+    mtGrad.addColorStop(0, '#FFFFFF');
+    mtGrad.addColorStop(1, '#FFF0F0');
+    ctx.fillStyle = mtGrad;
     ctx.beginPath(); ctx.moveTo(mx, 350); ctx.lineTo(mx + 150, peakY); ctx.lineTo(mx + 300, 350); ctx.fill();
-    // red stripes across the mountain
-    ctx.fillStyle = '#FF6688';
+    // red stripes with gradient
     for (var s = 0; s < 4; s++) {
       var t0 = (s * 2) / 8;
       var t1 = (s * 2 + 1) / 8;
@@ -4675,6 +5438,11 @@ function drawEarthBg(ctx, scrollX, age) {
       var y1 = 350 - (350 - peakY) * t1;
       var hw0 = 150 * (1 - t0);
       var hw1 = 150 * (1 - t1);
+      var stripeGrad = ctx.createLinearGradient(mx + 150 - hw0, y0, mx + 150 + hw0, y0);
+      stripeGrad.addColorStop(0, '#FF8899');
+      stripeGrad.addColorStop(0.5, '#FF6688');
+      stripeGrad.addColorStop(1, '#FF8899');
+      ctx.fillStyle = stripeGrad;
       ctx.beginPath();
       ctx.moveTo(mx + 150 - hw0, y0);
       ctx.lineTo(mx + 150 - hw1, y1);
@@ -4682,37 +5450,70 @@ function drawEarthBg(ctx, scrollX, age) {
       ctx.lineTo(mx + 150 + hw0, y0);
       ctx.fill();
     }
+    // Mountain edge highlight
+    ctx.save();
+    ctx.globalAlpha = 0.15;
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(mx + 10, 348); ctx.lineTo(mx + 150, peakY + 2); ctx.stroke();
+    ctx.restore();
   }
-  // gumdrop hills (mid layer): colorful rounded bumps
-  var gumColors = ['#FF88AA', '#88DDFF', '#88FF88', '#FFEE66'];
+  // gumdrop hills with gradient
+  var gumColors = [['#FF88AA','#DD5588'], ['#88DDFF','#55AADD'], ['#88FF88','#55CC55'], ['#FFEE66','#DDCC33']];
   var hOff = -(scrollX * 0.4) % 600;
   for (var i = -1; i < 7; i++) {
     var hx = i * 170 + hOff;
-    ctx.fillStyle = gumColors[((i % 4) + 4) % 4];
+    var gc = gumColors[((i % 4) + 4) % 4];
+    var gumGrad = ctx.createRadialGradient(hx + 75, 390, 10, hx + 85, 420, 70);
+    gumGrad.addColorStop(0, gc[0]);
+    gumGrad.addColorStop(1, gc[1]);
+    ctx.fillStyle = gumGrad;
     ctx.beginPath();
     ctx.arc(hx + 85, 420, 65, Math.PI, 0);
     ctx.closePath();
     ctx.fill();
+    // Gumdrop shine
+    ctx.save();
+    ctx.globalAlpha = 0.2;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.ellipse(hx + 70, 395, 15, 20, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   }
-  // ground: cookie crumble
-  ctx.fillStyle = '#DDAA77';
+  // ground: cookie crumble with gradient
+  var groundGrad = ctx.createLinearGradient(0, 420, 0, 540);
+  groundGrad.addColorStop(0, '#DDAA77');
+  groundGrad.addColorStop(0.3, '#CC9966');
+  groundGrad.addColorStop(1, '#BB8855');
+  ctx.fillStyle = groundGrad;
   ctx.fillRect(0, 420, CANVAS_W, 120);
-  ctx.fillStyle = '#EECC99';
+  // ground top edge with gradient
+  var edgeGrad = ctx.createLinearGradient(0, 415, 0, 423);
+  edgeGrad.addColorStop(0, '#FFDDBB');
+  edgeGrad.addColorStop(1, '#EECC99');
+  ctx.fillStyle = edgeGrad;
   ctx.fillRect(0, 415, CANVAS_W, 8);
-  // scattered candy: small colored gumdrops on the ground
+  // scattered candy with gradients
   var candyColors = ['#FF4466', '#44AAFF', '#44DD44', '#FFAA00', '#FF66CC', '#AADD00'];
   var rOff = -(scrollX * 0.6) % 800;
   for (var i = 0; i < 10; i++) {
     var rx = ((i * 110 + rOff) % (CANVAS_W + 200));
     var ry = 435 + (i % 3) * 15;
-    ctx.fillStyle = candyColors[i % candyColors.length];
+    var cr = 4 + (i % 3) * 2;
+    // candy shadow
+    ctx.save(); ctx.globalAlpha = 0.1;
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.ellipse(rx, ry + cr * 0.5, cr * 0.8, cr * 0.3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    // candy with gradient
+    var candyGrad = ctx.createRadialGradient(rx - 1, ry - 1, 0.5, rx, ry, cr);
+    candyGrad.addColorStop(0, '#FFFFFF');
+    candyGrad.addColorStop(0.4, candyColors[i % candyColors.length]);
+    candyGrad.addColorStop(1, candyColors[i % candyColors.length]);
+    ctx.fillStyle = candyGrad;
     ctx.beginPath();
-    ctx.arc(rx, ry, 4 + (i % 3) * 2, 0, Math.PI * 2);
-    ctx.fill();
-    // highlight on candy
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.beginPath();
-    ctx.arc(rx - 1, ry - 1, 2, 0, Math.PI * 2);
+    ctx.arc(rx, ry, cr, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -4757,31 +5558,48 @@ function drawCloud(ctx, x, y, r) {
 }
 
 function drawNamekBg(ctx, scrollX, age) {
-  // sky: warm golden/amber gradient
+  // sky: warm golden/amber gradient with more stops
   var skyGrd = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
   skyGrd.addColorStop(0, '#FFCC88');
-  skyGrd.addColorStop(1, '#FFE0AA');
+  skyGrd.addColorStop(0.3, '#FFD099');
+  skyGrd.addColorStop(0.7, '#FFE0AA');
+  skyGrd.addColorStop(1, '#FFEEBB');
   ctx.fillStyle = skyGrd;
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-  // chocolate sun: brown circle with golden glow
+  // chocolate sun with gradient glow
   ctx.save();
-  ctx.globalAlpha = 0.3;
-  ctx.fillStyle = '#FFAA44';
-  ctx.beginPath(); ctx.arc(200, 70, 55, 0, Math.PI * 2); ctx.fill();
+  var sunGlowGrad = ctx.createRadialGradient(200, 70, 20, 200, 70, 70);
+  sunGlowGrad.addColorStop(0, 'rgba(255,180,80,0.4)');
+  sunGlowGrad.addColorStop(0.6, 'rgba(255,170,68,0.15)');
+  sunGlowGrad.addColorStop(1, 'rgba(255,170,68,0)');
+  ctx.fillStyle = sunGlowGrad;
+  ctx.beginPath(); ctx.arc(200, 70, 70, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
-  ctx.fillStyle = '#884422';
+  // Sun body with gradient
+  var sunBody = ctx.createRadialGradient(195, 62, 5, 200, 70, 38);
+  sunBody.addColorStop(0, '#BB7744');
+  sunBody.addColorStop(0.5, '#884422');
+  sunBody.addColorStop(1, '#663311');
+  ctx.fillStyle = sunBody;
   ctx.beginPath(); ctx.arc(200, 70, 35, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#AA6633';
+  // Sun highlight
+  ctx.fillStyle = 'rgba(200,120,60,0.6)';
   ctx.beginPath(); ctx.arc(195, 62, 10, 0, Math.PI * 2); ctx.fill();
-  // wafer towers (far): tall tan rectangles with grid lines
+  ctx.fillStyle = 'rgba(255,200,150,0.3)';
+  ctx.beginPath(); ctx.arc(192, 58, 5, 0, Math.PI * 2); ctx.fill();
+  // wafer towers with gradient
   var sOff = -(scrollX * 0.15) % 600;
   for (var i = -1; i < 6; i++) {
     var sx = i * 180 + sOff;
     var sh = 100 + (i % 3) * 50;
-    ctx.fillStyle = '#FFCC88';
+    var waferGrad = ctx.createLinearGradient(sx + 5, 0, sx + 35, 0);
+    waferGrad.addColorStop(0, '#FFCC88');
+    waferGrad.addColorStop(0.5, '#FFD8A0');
+    waferGrad.addColorStop(1, '#FFCC88');
+    ctx.fillStyle = waferGrad;
     ctx.fillRect(sx + 5, 300 - sh, 30, sh + 50);
-    // grid lines on wafer
-    ctx.strokeStyle = '#DDAA66';
+    // grid lines
+    ctx.strokeStyle = 'rgba(200,150,80,0.4)';
     ctx.lineWidth = 1;
     for (var g = 0; g < sh + 50; g += 10) {
       ctx.beginPath(); ctx.moveTo(sx + 5, 300 - sh + g); ctx.lineTo(sx + 35, 300 - sh + g); ctx.stroke();
@@ -4789,27 +5607,53 @@ function drawNamekBg(ctx, scrollX, age) {
     for (var g = 0; g < 30; g += 10) {
       ctx.beginPath(); ctx.moveTo(sx + 5 + g, 300 - sh); ctx.lineTo(sx + 5 + g, 350); ctx.stroke();
     }
+    // Tower top cap
+    ctx.fillStyle = '#DDAA66';
+    ctx.beginPath(); ctx.arc(sx + 20, 300 - sh, 15, Math.PI, 0); ctx.fill();
   }
-  // cookie buildings (mid): round/dome shapes with square windows
+  // cookie buildings with gradient
   var bOff = -(scrollX * 0.35) % 700;
   for (var i = 0; i < 4; i++) {
     var bx = ((i * 220 + bOff) % (CANVAS_W + 200));
-    ctx.fillStyle = '#DDAA66';
+    // building dome gradient
+    var bldGrad = ctx.createRadialGradient(bx + 25, 370, 5, bx + 25, 380, 32);
+    bldGrad.addColorStop(0, '#EECC88');
+    bldGrad.addColorStop(1, '#DDAA66');
+    ctx.fillStyle = bldGrad;
     ctx.beginPath(); ctx.arc(bx + 25, 380, 30, Math.PI, 0); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#DDAA66';
     ctx.fillRect(bx - 5, 380, 60, 30);
-    // square windows
-    ctx.fillStyle = '#FFEE99';
+    // building outline
+    ctx.strokeStyle = 'rgba(140,100,50,0.2)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(bx + 25, 380, 30, Math.PI, 0); ctx.stroke();
+    // windows with warm glow
+    var winGlow = ctx.createRadialGradient(bx + 10, 390, 1, bx + 10, 390, 7);
+    winGlow.addColorStop(0, '#FFFF99');
+    winGlow.addColorStop(1, '#FFEE99');
+    ctx.fillStyle = winGlow;
     ctx.fillRect(bx + 5, 385, 10, 10);
+    var winGlow2 = ctx.createRadialGradient(bx + 35, 390, 1, bx + 35, 390, 7);
+    winGlow2.addColorStop(0, '#FFFF99');
+    winGlow2.addColorStop(1, '#FFEE99');
+    ctx.fillStyle = winGlow2;
     ctx.fillRect(bx + 30, 385, 10, 10);
   }
-  // ground: rich chocolate brown
-  ctx.fillStyle = '#553311';
+  // ground: rich chocolate with gradient
+  var chocGround = ctx.createLinearGradient(0, 400, 0, 540);
+  chocGround.addColorStop(0, '#553311');
+  chocGround.addColorStop(0.4, '#4A2A0E');
+  chocGround.addColorStop(1, '#3A1A05');
+  ctx.fillStyle = chocGround;
   ctx.fillRect(0, 400, CANVAS_W, 140);
-  ctx.fillStyle = '#664422';
+  // ground top edge gradient
+  var chocEdge = ctx.createLinearGradient(0, 395, 0, 403);
+  chocEdge.addColorStop(0, '#886644');
+  chocEdge.addColorStop(1, '#664422');
+  ctx.fillStyle = chocEdge;
   ctx.fillRect(0, 395, CANVAS_W, 8);
-  // chocolate river: wavy brown stripe with highlights
+  // chocolate river with gradient fill
   var rOff = -(scrollX * 0.5) % 500;
-  ctx.fillStyle = '#442211';
   ctx.beginPath();
   ctx.moveTo(0, 440);
   for (var x = 0; x <= CANVAS_W; x += 20) {
@@ -4819,9 +5663,14 @@ function drawNamekBg(ctx, scrollX, age) {
     ctx.lineTo(x, 455 + Math.sin((x + rOff) * 0.03) * 4);
   }
   ctx.closePath();
+  var riverGrad = ctx.createLinearGradient(0, 438, 0, 458);
+  riverGrad.addColorStop(0, '#553322');
+  riverGrad.addColorStop(0.5, '#442211');
+  riverGrad.addColorStop(1, '#331100');
+  ctx.fillStyle = riverGrad;
   ctx.fill();
-  // river highlights
-  ctx.strokeStyle = '#663322';
+  // river highlights with animated shimmer
+  ctx.strokeStyle = 'rgba(100,50,30,0.5)';
   ctx.lineWidth = 2;
   ctx.beginPath();
   for (var x = 0; x <= CANVAS_W; x += 20) {
@@ -4829,40 +5678,76 @@ function drawNamekBg(ctx, scrollX, age) {
     else ctx.lineTo(x, 447 + Math.sin((x + rOff) * 0.03) * 5);
   }
   ctx.stroke();
+  // White shimmer on river
+  ctx.save();
+  ctx.globalAlpha = 0.08;
+  ctx.strokeStyle = '#FFDDAA';
   ctx.lineWidth = 1;
-  // scattered cocoa beans: small brown ovals
+  ctx.beginPath();
+  for (var x = 0; x <= CANVAS_W; x += 15) {
+    if (x === 0) ctx.moveTo(x, 444 + Math.sin((x + rOff + age * 40) * 0.04) * 4);
+    else ctx.lineTo(x, 444 + Math.sin((x + rOff + age * 40) * 0.04) * 4);
+  }
+  ctx.stroke();
+  ctx.restore();
+  ctx.lineWidth = 1;
+  // cocoa beans with gradient
   var cOff = -(scrollX * 0.6) % 800;
-  ctx.fillStyle = '#553322';
   for (var i = 0; i < 8; i++) {
     var cx = ((i * 130 + cOff) % (CANVAS_W + 200));
     var cy = 465 + (i % 3) * 12;
+    // bean shadow
+    ctx.save(); ctx.globalAlpha = 0.1;
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.ellipse(cx, cy + 3, 5, 2, (i * 0.5), 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    // bean with gradient
+    var beanGrad = ctx.createRadialGradient(cx - 1, cy - 1, 1, cx, cy, 6);
+    beanGrad.addColorStop(0, '#774433');
+    beanGrad.addColorStop(1, '#553322');
+    ctx.fillStyle = beanGrad;
     ctx.beginPath();
     ctx.ellipse(cx, cy, 6, 4, (i * 0.5), 0, Math.PI * 2);
     ctx.fill();
-    // highlight on bean
-    ctx.fillStyle = '#774433';
+    // highlight
+    ctx.fillStyle = 'rgba(255,200,150,0.25)';
     ctx.beginPath();
     ctx.ellipse(cx - 1, cy - 1, 3, 2, (i * 0.5), 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#553322';
   }
 }
 
 function drawDarkRealmBg(ctx, scrollX, age) {
-  // sky: light ethereal blue-white (magical candy realm)
+  // sky: light ethereal blue-white with radial gradient center
   var skyGrd = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
-  skyGrd.addColorStop(0, '#DDEEFF');
-  skyGrd.addColorStop(1, '#EEEEFF');
+  skyGrd.addColorStop(0, '#CCDDFF');
+  skyGrd.addColorStop(0.3, '#DDEEFF');
+  skyGrd.addColorStop(0.7, '#EEEEFF');
+  skyGrd.addColorStop(1, '#E8E8FF');
   ctx.fillStyle = skyGrd;
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-  // rainbow streaks: diagonal stripes with low opacity
+  // Central magical glow
   ctx.save();
-  ctx.globalAlpha = 0.15;
+  var magicGlow = ctx.createRadialGradient(480, 200, 30, 480, 200, 300);
+  magicGlow.addColorStop(0, 'rgba(220,200,255,0.2)');
+  magicGlow.addColorStop(0.5, 'rgba(200,180,255,0.08)');
+  magicGlow.addColorStop(1, 'rgba(200,180,255,0)');
+  ctx.fillStyle = magicGlow;
+  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+  ctx.restore();
+  // rainbow streaks with gradient fill
+  ctx.save();
   var rainbowColors = ['#FFAAAA', '#FFDDAA', '#FFFFAA', '#AAFFAA', '#AADDFF', '#DDAAFF'];
   for (var i = 0; i < rainbowColors.length; i++) {
-    ctx.fillStyle = rainbowColors[i];
-    ctx.beginPath();
     var rx = 80 + i * 120 + Math.sin(age * 0.3 + i) * 20;
+    var streakGrad = ctx.createLinearGradient(rx, 0, rx - 130, CANVAS_H);
+    streakGrad.addColorStop(0, 'rgba(255,255,255,0)');
+    streakGrad.addColorStop(0.3, rainbowColors[i]);
+    streakGrad.addColorStop(0.7, rainbowColors[i]);
+    streakGrad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.globalAlpha = 0.12;
+    ctx.fillStyle = streakGrad;
+    ctx.beginPath();
     ctx.moveTo(rx, 0);
     ctx.lineTo(rx + 60, 0);
     ctx.lineTo(rx - 100, CANVAS_H);
@@ -4871,7 +5756,7 @@ function drawDarkRealmBg(ctx, scrollX, age) {
     ctx.fill();
   }
   ctx.restore();
-  // star sprinkles: small colored dots twinkling
+  // star sprinkles with 4-point star shapes
   var starOff = -(scrollX * 0.1) % CANVAS_W;
   var sprinkleColors = ['#FFAACC', '#AACCFF', '#CCFFAA', '#FFDDAA', '#DDAAFF', '#AAFFDD'];
   for (var i = 0; i < 50; i++) {
@@ -4880,21 +5765,36 @@ function drawDarkRealmBg(ctx, scrollX, age) {
     var ss = (i % 3 === 0) ? 3 : 2;
     ctx.globalAlpha = 0.5 + Math.sin(age * 2 + i) * 0.3;
     ctx.fillStyle = sprinkleColors[i % sprinkleColors.length];
-    ctx.beginPath(); ctx.arc(sx, sy, ss, 0, Math.PI * 2); ctx.fill();
+    // Draw as 4-point stars for sparkle effect
+    if (i % 4 === 0) {
+      ctx.beginPath();
+      ctx.moveTo(sx, sy - ss); ctx.lineTo(sx + ss*0.3, sy - ss*0.3);
+      ctx.lineTo(sx + ss, sy); ctx.lineTo(sx + ss*0.3, sy + ss*0.3);
+      ctx.lineTo(sx, sy + ss); ctx.lineTo(sx - ss*0.3, sy + ss*0.3);
+      ctx.lineTo(sx - ss, sy); ctx.lineTo(sx - ss*0.3, sy - ss*0.3);
+      ctx.closePath(); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.arc(sx, sy, ss, 0, Math.PI * 2); ctx.fill();
+    }
   }
   ctx.globalAlpha = 1;
-  // sugar crystals (mid layer): geometric shapes with white highlights
+  // sugar crystals with gradient fills
   var dOff = -(scrollX * 0.3) % 800;
-  var crystalColors = ['#CCDDFF', '#FFCCDD', '#DDFFCC'];
+  var crystalColors = [['#CCDDFF','#99AADD'], ['#FFCCDD','#DD99AA'], ['#DDFFCC','#AADD99']];
   for (var i = 0; i < 6; i++) {
     var dx = ((i * 180 + dOff) % (CANVAS_W + 200)) - 50;
     var dy = 200 + (i % 3) * 80 + Math.sin(age + i * 2) * 15;
     var cSize = 15 + (i % 3) * 8;
-    ctx.fillStyle = crystalColors[i % crystalColors.length];
+    var cc = crystalColors[i % crystalColors.length];
     ctx.save();
     ctx.translate(dx, dy);
     ctx.rotate(age * 0.1 + i);
-    // draw diamond shape
+    // Crystal gradient
+    var crystGrad = ctx.createLinearGradient(-cSize * 0.6, -cSize, cSize * 0.6, cSize);
+    crystGrad.addColorStop(0, cc[0]);
+    crystGrad.addColorStop(1, cc[1]);
+    ctx.fillStyle = crystGrad;
+    // diamond shape
     ctx.beginPath();
     ctx.moveTo(0, -cSize);
     ctx.lineTo(cSize * 0.6, 0);
@@ -4902,45 +5802,79 @@ function drawDarkRealmBg(ctx, scrollX, age) {
     ctx.lineTo(-cSize * 0.6, 0);
     ctx.closePath();
     ctx.fill();
+    // Crystal outline
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
     // white sparkle highlight
     ctx.fillStyle = '#FFFFFF';
     ctx.globalAlpha = 0.6 + Math.sin(age * 3 + i * 1.5) * 0.3;
     ctx.beginPath(); ctx.arc(-cSize * 0.15, -cSize * 0.3, cSize * 0.15, 0, Math.PI * 2); ctx.fill();
+    // Second smaller highlight
+    ctx.globalAlpha = 0.3;
+    ctx.beginPath(); ctx.arc(cSize * 0.1, cSize * 0.1, cSize * 0.08, 0, Math.PI * 2); ctx.fill();
     ctx.globalAlpha = 1;
     ctx.restore();
   }
-  // floating candy platforms: colorful rectangles/ovals
+  // floating candy platforms with gradient
   var pOff = -(scrollX * 0.4) % 600;
-  var platColors = ['#FF99BB', '#99CCFF', '#BBFF99', '#FFCC99', '#CC99FF'];
+  var platColors = [['#FF99BB','#DD7799'], ['#99CCFF','#77AADD'], ['#BBFF99','#99DD77'], ['#FFCC99','#DDAA77'], ['#CC99FF','#AA77DD']];
   for (var i = 0; i < 4; i++) {
     var px = ((i * 200 + pOff) % (CANVAS_W + 200));
     var py = 300 + (i % 2) * 40 + Math.sin(age * 0.8 + i * 1.5) * 10;
-    ctx.fillStyle = platColors[i % platColors.length];
+    var pc = platColors[i % platColors.length];
+    // platform shadow
+    ctx.save(); ctx.globalAlpha = 0.08;
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.ellipse(px + 30, py + 6, 30, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    // platform gradient
+    var platGrad = ctx.createRadialGradient(px + 25, py - 3, 5, px + 30, py, 38);
+    platGrad.addColorStop(0, pc[0]);
+    platGrad.addColorStop(1, pc[1]);
+    ctx.fillStyle = platGrad;
     ctx.beginPath();
     ctx.ellipse(px + 30, py, 35, 10, 0, 0, Math.PI * 2);
     ctx.fill();
-    // candy stripe on platform
-    ctx.fillStyle = '#FFFFFF';
-    ctx.globalAlpha = 0.4;
+    // platform outline
+    ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.ellipse(px + 30, py, 35, 10, 0, 0, Math.PI * 2); ctx.stroke();
+    // candy shine on platform
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.beginPath();
-    ctx.ellipse(px + 30, py - 2, 25, 5, 0, 0, Math.PI * 2);
+    ctx.ellipse(px + 25, py - 3, 20, 4, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.globalAlpha = 1;
   }
-  // ground: sparkling sugar surface
-  ctx.fillStyle = '#EEEEFF';
+  // ground: sparkling sugar with gradient
+  var sugarGround = ctx.createLinearGradient(0, 430, 0, 540);
+  sugarGround.addColorStop(0, '#EEEEFF');
+  sugarGround.addColorStop(0.3, '#E8E8FF');
+  sugarGround.addColorStop(1, '#DDDDEE');
+  ctx.fillStyle = sugarGround;
   ctx.fillRect(0, 430, CANVAS_W, 110);
-  ctx.fillStyle = '#DDDDFF';
+  // ground edge gradient
+  var sugarEdge = ctx.createLinearGradient(0, 425, 0, 433);
+  sugarEdge.addColorStop(0, '#FFFFFF');
+  sugarEdge.addColorStop(1, '#DDDDFF');
+  ctx.fillStyle = sugarEdge;
   ctx.fillRect(0, 425, CANVAS_W, 8);
-  // sparkle dots on the ground
+  // sparkle dots on the ground (star shapes for some)
   var crOff = -(scrollX * 0.6) % 400;
   for (var i = 0; i < 20; i++) {
     var crx = ((i * 55 + crOff) % (CANVAS_W + 100));
     var cry = 440 + (i % 4) * 15;
     ctx.globalAlpha = 0.4 + Math.sin(age * 3 + i * 2) * 0.3;
     ctx.fillStyle = '#FFFFFF';
-    ctx.beginPath(); ctx.arc(crx, cry, 2, 0, Math.PI * 2); ctx.fill();
-    // colored sparkle next to white
+    // 4-point star sparkle
+    var sr = 2;
+    ctx.beginPath();
+    ctx.moveTo(crx, cry - sr); ctx.lineTo(crx + sr*0.3, cry - sr*0.3);
+    ctx.lineTo(crx + sr, cry); ctx.lineTo(crx + sr*0.3, cry + sr*0.3);
+    ctx.lineTo(crx, cry + sr); ctx.lineTo(crx - sr*0.3, cry + sr*0.3);
+    ctx.lineTo(crx - sr, cry); ctx.lineTo(crx - sr*0.3, cry - sr*0.3);
+    ctx.closePath(); ctx.fill();
+    // colored sparkle
     ctx.fillStyle = sprinkleColors[i % sprinkleColors.length];
     ctx.beginPath(); ctx.arc(crx + 8, cry + 3, 1.5, 0, Math.PI * 2); ctx.fill();
   }
