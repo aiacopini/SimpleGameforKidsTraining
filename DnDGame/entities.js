@@ -199,7 +199,7 @@ function updateEnemyAI(enemy, player, dt, level, projectiles, particles, enemies
 
                 // Boss special behavior
                 if (enemy.boss && Math.random() < 0.3) {
-                    performBossSpecial(enemy, player, projectiles, particles);
+                    performBossSpecial(enemy, player, projectiles, particles, level);
                 }
 
                 // Healer behavior
@@ -211,7 +211,7 @@ function updateEnemyAI(enemy, player, dt, level, projectiles, particles, enemies
     }
 }
 
-function performBossSpecial(boss, player, projectiles, particles) {
+function performBossSpecial(boss, player, projectiles, particles, level) {
     const cx = boss.x + boss.w / 2;
     const cy = boss.y + boss.h / 2;
 
@@ -219,8 +219,10 @@ function performBossSpecial(boss, player, projectiles, particles) {
         case ENT.GOBLIN_KING:
             // Charge attack
             const ang = angle(cx, cy, player.x + player.w / 2, player.y + player.h / 2);
-            boss.x += Math.cos(ang) * 60;
-            boss.y += Math.sin(ang) * 60;
+            const chargeDx = Math.cos(ang) * 60;
+            const chargeDy = Math.sin(ang) * 60;
+            if (!isWall(boss.x + chargeDx, boss.y, boss.w, boss.h, level)) boss.x += chargeDx;
+            if (!isWall(boss.x, boss.y + chargeDy, boss.w, boss.h, level)) boss.y += chargeDy;
             particles.burst(cx, cy, 10, '#8a6a3a', 60, 0.4, 3);
             break;
 
@@ -281,10 +283,20 @@ function performBossSpecial(boss, player, projectiles, particles) {
                 }
                 particles.shadowBurst(cx, cy);
             } else {
-                // Teleport near player
+                // Teleport near player (find a valid position)
                 particles.shadowBurst(cx, cy);
-                boss.x = player.x + rand(-80, 80);
-                boss.y = player.y + rand(-80, 80);
+                let newX = boss.x, newY = boss.y;
+                for (let attempt = 0; attempt < 10; attempt++) {
+                    const tx = player.x + rand(-80, 80);
+                    const ty = player.y + rand(-80, 80);
+                    if (!isWall(tx, ty, boss.w, boss.h, level)) {
+                        newX = tx;
+                        newY = ty;
+                        break;
+                    }
+                }
+                boss.x = newX;
+                boss.y = newY;
                 particles.shadowBurst(boss.x + boss.w / 2, boss.y + boss.h / 2);
             }
             break;

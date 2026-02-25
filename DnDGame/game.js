@@ -24,6 +24,7 @@ const Game = (() => {
     let openedChests = new Set();
     let unlockedDoors = new Set();
     let bossTriggered = false;
+    let stairHintTimer = 0;
 
     // Tile rendering cache
     let tileCanvas = null;
@@ -327,7 +328,8 @@ const Game = (() => {
         Combat.updateProjectiles(projectiles, player, level.enemies, particles, camera, level, dt);
 
         // Remove dead enemies (after death animation)
-        for (const enemy of level.enemies) {
+        for (let i = level.enemies.length - 1; i >= 0; i--) {
+            const enemy = level.enemies[i];
             if (enemy.dead && enemy.deathTimer <= 0) {
                 // Award XP and gold
                 if (enemy.xp > 0) {
@@ -344,8 +346,10 @@ const Game = (() => {
                         GameAudio.SFX.levelUp();
                         particles.levelUp(player.x + player.w / 2, player.y + player.h / 2);
                     }
-
-                    enemy.xp = 0; // Don't award twice
+                }
+                // Remove from array unless it's a boss (needed for stair unlock check)
+                if (!enemy.boss) {
+                    level.enemies.splice(i, 1);
                 }
             }
         }
@@ -411,17 +415,19 @@ const Game = (() => {
         const boss = level.enemies.find(e => e.boss);
         if (boss && boss.dead) {
             const stairDist = dist(pcx, pcy, level.stairs.x * TILE + TILE / 2, level.stairs.y * TILE + TILE / 2);
-            if (stairDist < TILE) {
-                if (input.justPressed('KeyE')) {
+            if (stairDist < TILE * 1.5) {
+                if (stairDist < TILE && input.justPressed('KeyE')) {
                     completeLevel();
-                } else if (stairDist < TILE * 1.5) {
+                } else if (stairHintTimer <= 0) {
                     Combat.addFloatingText(
                         level.stairs.x * TILE + TILE / 2,
                         level.stairs.y * TILE - 8,
                         'Press E', 'rgb(80,255,80)', 12
                     );
+                    stairHintTimer = 1.0;
                 }
             }
+            if (stairHintTimer > 0) stairHintTimer -= dt;
         }
 
         // Unlock boss door when player has key or near boss area
@@ -502,6 +508,9 @@ const Game = (() => {
             if (mx !== 0) player.facing = mx > 0 ? 1 : -1;
             player.dx = dx;
             player.dy = dy;
+        } else {
+            player.dx = 0;
+            player.dy = 0;
         }
 
         // Clamp to level bounds
