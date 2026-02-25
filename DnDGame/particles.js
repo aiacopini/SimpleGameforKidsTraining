@@ -27,7 +27,7 @@ class Particle {
     draw(ctx) {
         const alpha = this.fadeOut ? clamp(this.life / this.maxLife, 0, 1) : 1;
         const s = this.size * (0.5 + alpha * 0.5);
-        ctx.fillStyle = typeof this.color === 'string' ? this.color.replace(')', `,${alpha})`.replace('rgb', 'rgba') : this.color;
+        ctx.fillStyle = typeof this.color === 'string' ? this.color.replace(')', `,${alpha})`).replace('rgb', 'rgba') : this.color;
         if (typeof this.color === 'string' && this.color.startsWith('#')) {
             const rgb = hexToRgb(this.color);
             ctx.fillStyle = rgbToStr(rgb.r, rgb.g, rgb.b, alpha);
