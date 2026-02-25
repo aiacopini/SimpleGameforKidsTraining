@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dungeons of Drakenmoor</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700;900&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0a0a0f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            font-family: 'MedievalSharp', cursive;
+        }
+
+        #gameWrapper {
+            position: relative;
+            width: 1024px;
+            height: 768px;
+        }
+
+        canvas {
+            display: block;
+            border: 2px solid #2a1a0a;
+            box-shadow: 0 0 30px rgba(255, 100, 0, 0.3), inset 0 0 30px rgba(0,0,0,0.5);
+            cursor: none;
+        }
+
+        #uiOverlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #uiOverlay.active { pointer-events: auto; }
+
+        .menu-screen {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(5, 5, 10, 0.92);
+        }
+
+        .menu-screen h1 {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 52px;
+            color: #d4a54a;
+            text-shadow: 0 0 20px rgba(212, 165, 74, 0.5), 0 3px 6px rgba(0,0,0,0.8);
+            margin-bottom: 8px;
+            letter-spacing: 3px;
+        }
+
+        .menu-screen .subtitle {
+            font-family: 'Cinzel', serif;
+            font-size: 18px;
+            color: #8a7a5a;
+            margin-bottom: 40px;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+        }
+
+        .menu-btn {
+            font-family: 'Cinzel', serif;
+            font-size: 18px;
+            color: #c8b87a;
+            background: linear-gradient(180deg, rgba(40,30,15,0.9), rgba(20,15,5,0.95));
+            border: 1px solid #5a4a2a;
+            padding: 12px 50px;
+            margin: 6px 0;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            min-width: 260px;
+            text-align: center;
+            pointer-events: auto;
+        }
+
+        .menu-btn:hover {
+            color: #ffd866;
+            border-color: #d4a54a;
+            background: linear-gradient(180deg, rgba(60,45,15,0.9), rgba(40,30,10,0.95));
+            box-shadow: 0 0 15px rgba(212, 165, 74, 0.3);
+            transform: scale(1.03);
+        }
+
+        .class-select {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .class-card {
+            width: 200px;
+            padding: 20px;
+            background: linear-gradient(180deg, rgba(30,25,15,0.95), rgba(15,10,5,0.98));
+            border: 1px solid #3a2a1a;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            pointer-events: auto;
+        }
+
+        .class-card:hover, .class-card.selected {
+            border-color: #d4a54a;
+            box-shadow: 0 0 20px rgba(212, 165, 74, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .class-card .class-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .class-card h3 {
+            font-family: 'Cinzel', serif;
+            color: #d4a54a;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .class-card p {
+            color: #8a7a5a;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .class-card .stats {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #6a6a5a;
+            text-align: left;
+            padding: 0 10px;
+        }
+
+        .hidden { display: none !important; }
+
+        #loadingBar {
+            width: 300px;
+            height: 4px;
+            background: #1a1a2a;
+            border: 1px solid #2a2a3a;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        #loadingFill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #d4a54a, #ffd866);
+            transition: width 0.3s;
+        }
+
+        .dice-result {
+            position: absolute;
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            font-size: 28px;
+            pointer-events: none;
+            z-index: 100;
+            animation: diceFloat 1.5s ease-out forwards;
+        }
+
+        @keyframes diceFloat {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            70% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-60px) scale(0.6); }
+        }
+
+        .damage-number {
+            position: absolute;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            pointer-events: none;
+            z-index: 99;
+            animation: dmgFloat 1s ease-out forwards;
+        }
+
+        @keyframes dmgFloat {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-40px); }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameWrapper">
+        <canvas id="gameCanvas" width="1024" height="768"></canvas>
+        <div id="uiOverlay" class="active">
+            <!-- Main Menu -->
+            <div id="mainMenu" class="menu-screen">
+                <h1>Dungeons of Drakenmoor</h1>
+                <p class="subtitle">A Dark Fantasy Adventure</p>
+                <button class="menu-btn" onclick="Game.showClassSelect()">New Adventure</button>
+                <button class="menu-btn" onclick="Game.showControls()">Controls</button>
+            </div>
+
+            <!-- Class Selection -->
+            <div id="classSelect" class="menu-screen hidden">
+                <h1 style="font-size:36px;">Choose Your Hero</h1>
+                <p class="subtitle">Select a class to begin your quest</p>
+                <div class="class-select">
+                    <div class="class-card" onclick="Game.selectClass('warrior')" id="card-warrior">
+                        <span class="class-icon">&#9876;</span>
+                        <h3>Warrior</h3>
+                        <p>A stalwart fighter clad in heavy armor, masters of melee combat and defense.</p>
+                        <div class="stats">
+                            STR: 16 &bull; DEX: 10 &bull; CON: 14<br>
+                            INT: 8 &bull; WIS: 10 &bull; CHA: 12<br>
+                            HP: 120 &bull; Armor: Heavy
+                        </div>
+                    </div>
+                    <div class="class-card" onclick="Game.selectClass('mage')" id="card-mage">
+                        <span class="class-icon">&#9733;</span>
+                        <h3>Mage</h3>
+                        <p>A wielder of arcane forces, devastating from range but fragile in close quarters.</p>
+                        <div class="stats">
+                            STR: 6 &bull; DEX: 10 &bull; CON: 8<br>
+                            INT: 18 &bull; WIS: 14 &bull; CHA: 10<br>
+                            MP: 100 &bull; Armor: Cloth
+                        </div>
+                    </div>
+                    <div class="class-card" onclick="Game.selectClass('rogue')" id="card-rogue">
+                        <span class="class-icon">&#9760;</span>
+                        <h3>Rogue</h3>
+                        <p>A shadow-dwelling assassin, swift and deadly with critical strikes from stealth.</p>
+                        <div class="stats">
+                            STR: 10 &bull; DEX: 18 &bull; CON: 10<br>
+                            INT: 12 &bull; WIS: 10 &bull; CHA: 14<br>
+                            HP: 80 &bull; Armor: Light
+                        </div>
+                    </div>
+                </div>
+                <button class="menu-btn" id="startGameBtn" onclick="Game.startGame()" style="opacity:0.4; pointer-events:none;">Begin Quest</button>
+                <button class="menu-btn" onclick="Game.showMainMenu()" style="font-size:14px; padding:8px 30px; margin-top:10px;">Back</button>
+            </div>
+
+            <!-- Controls Screen -->
+            <div id="controlsScreen" class="menu-screen hidden">
+                <h1 style="font-size:36px;">Controls</h1>
+                <div style="color:#8a7a5a; font-size:16px; line-height:2.2; margin:20px 0; text-align:left;">
+                    <div><span style="color:#d4a54a;">W A S D</span> &mdash; Move your hero</div>
+                    <div><span style="color:#d4a54a;">Left Click</span> &mdash; Attack / Cast spell</div>
+                    <div><span style="color:#d4a54a;">Right Click</span> &mdash; Special ability</div>
+                    <div><span style="color:#d4a54a;">E</span> &mdash; Interact / Open doors & chests</div>
+                    <div><span style="color:#d4a54a;">I</span> &mdash; Open inventory</div>
+                    <div><span style="color:#d4a54a;">1 2 3</span> &mdash; Use potions (Health / Mana / Buff)</div>
+                    <div><span style="color:#d4a54a;">Space</span> &mdash; Dodge roll</div>
+                    <div><span style="color:#d4a54a;">ESC</span> &mdash; Pause menu</div>
+                    <div><span style="color:#d4a54a;">M</span> &mdash; Toggle minimap</div>
+                </div>
+                <button class="menu-btn" onclick="Game.showMainMenu()">Back</button>
+            </div>
+
+            <!-- Death Screen -->
+            <div id="deathScreen" class="menu-screen hidden">
+                <h1 style="color:#8a1a1a; font-size:48px;">YOU HAVE FALLEN</h1>
+                <p class="subtitle" style="color:#5a3a3a;">The darkness claims another soul...</p>
+                <button class="menu-btn" onclick="Game.respawn()">Rise Again</button>
+                <button class="menu-btn" onclick="Game.showMainMenu()">Abandon Quest</button>
+            </div>
+
+            <!-- Victory Screen -->
+            <div id="victoryScreen" class="menu-screen hidden">
+                <h1 style="color:#d4a54a; font-size:42px;">VICTORY!</h1>
+                <p class="subtitle" id="victoryText">The dungeon is cleared!</p>
+                <button class="menu-btn" id="nextLevelBtn" onclick="Game.nextLevel()">Continue Onward</button>
+                <button class="menu-btn" onclick="Game.showMainMenu()">Return to Title</button>
+            </div>
+
+            <!-- Pause Screen -->
+            <div id="pauseScreen" class="menu-screen hidden" style="background:rgba(5,5,10,0.8);">
+                <h1 style="font-size:36px;">Paused</h1>
+                <button class="menu-btn" onclick="Game.resume()">Resume</button>
+                <button class="menu-btn" onclick="Game.showMainMenu()">Quit to Menu</button>
+            </div>
+
+            <!-- Level Intro -->
+            <div id="levelIntro" class="menu-screen hidden">
+                <h1 id="levelTitle" style="font-size:40px;"></h1>
+                <p id="levelDesc" class="subtitle" style="max-width:500px; text-align:center; line-height:1.6;"></p>
+                <p id="levelFloor" style="color:#5a4a3a; font-size:14px; margin-top:10px;"></p>
+                <button class="menu-btn" onclick="Game.beginLevel()" style="margin-top:20px;">Enter the Dungeon</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="utils.js"></script>
+    <script src="audio.js"></script>
+    <script src="dice.js"></script>
+    <script src="sprites.js"></script>
+    <script src="particles.js"></script>
+    <script src="entities.js"></script>
+    <script src="levels.js"></script>
+    <script src="combat.js"></script>
+    <script src="hud.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
