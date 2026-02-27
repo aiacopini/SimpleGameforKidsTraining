@@ -1,0 +1,1485 @@
+I now have a thorough understanding of the reference games, the project requirements, and the rendering patterns. Let me compile the comprehensive implementation plan.
+
+---
+
+# Realm of Shadows 2 -- Comprehensive Implementation Plan
+
+## Project Overview and Architecture Summary
+
+This plan covers the full build of "Realm of Shadows," a Prince-of-Persia-inspired 2D side-scrolling action game using HTML5 Canvas 2D rendered inside a React 18 + TypeScript application. All art is procedurally generated via Canvas drawing commands, targeting a bold vector/comic style (Dead Cells / Guacamelee aesthetic). The game features 5 campaign levels alternating combat and mystery gameplay.
+
+The key architectural insight from examining the two reference games (DnDGame and RealmOfShadows v1) is that both use a pattern of:
+1. A Canvas element managed by the framework (or plain HTML)
+2. A game loop running via `requestAnimationFrame`, completely decoupled from UI rendering
+3. Procedural sprite drawing via Canvas path operations (no sprite sheets)
+4. An offscreen Canvas for tile caching and lighting
+5. A particle system with object pooling
+6. An HTML UI overlay sitting above the Canvas via z-index
+
+This exact pattern translates cleanly into React: the Canvas lives inside a React component via `useRef`, the game loop is managed with `useEffect` + rAF, and all UI overlays (HUD, menus, dialogs) are React components positioned absolutely on top of the Canvas.
+
+---
+
+## Phase 0: Project Scaffolding
+
+### Goal
+Set up the Vite + React + TypeScript project directly in `C:/Users/aiaco/ClaudeCode/SimpleGameforKidsTraining/RealmOfShadows2/` (not in a subdirectory). Install all dependencies. Create the full directory structure. Establish theming and configuration.
+
+### Files to Create
+
+**`package.json`** -- Project manifest with scripts and dependencies.
+```json
+{
+  "name": "realm-of-shadows",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  }
+}
+```
+Dependencies: `react`, `react-dom`, `zustand`, `howler`. Dev: `typescript`, `@types/react`, `@types/react-dom`, `@types/howler`, `@vitejs/plugin-react`, `vite`.
+
+**`tsconfig.json`** -- Strict TypeScript configuration.
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] }
+  },
+  "include": ["src"]
+}
+```
+
+**`vite.config.ts`** -- Vite configuration with React plugin and path aliases.
+
+**`index.html`** -- Entry HTML with Google Fonts link (MedievalSharp + Crimson Text) and root div.
+
+**`src/main.tsx`** -- React entry point rendering `<App />`.
+
+**`src/App.tsx`** -- Root component: routes between MainMenu and Game screen.
+
+**`src/theme.css`** -- CSS custom properties for the dark fantasy palette:
+```css
+:root {
+  --bg-deep: #0a0a12;
+  --bg-mid: #14141e;
+  --stone: #2a2a3a;
+  --stone-light: #3a3a4e;
+  --gold: #c9a030;
+  --gold-dim: #8a6e20;
+  --blood: #8b1a1a;
+  --blood-bright: #cc2a2a;
+  --magic: #4a6fa5;
+  --magic-glow: #6a8fc5;
+  --poison: #3a6b35;
+  --text: #d4c9a8;
+  --text-dim: #8a8070;
+  --outline: #1a1a2e;
+  --font-display: 'MedievalSharp', cursive;
+  --font-body: 'Crimson Text', serif;
+  --tile-size: 48px;
+}
+```
+
+### Directory Structure
+```
+src/
+  engine/          # Game loop, physics, input, camera, animation
+  entities/        # Player, enemies, NPCs, base entity
+    enemies/
+    npcs/
+  levels/          # Level JSON files, LevelLoader
+    tilesets/
+  systems/         # Combat, dialogue, inventory, clues, traps, progression
+  rendering/       # Canvas renderer, procedural art, lighting, particles, VFX
+    characters/    # Per-character drawing functions
+    tiles/         # Per-tileset drawing functions
+    effects/       # Particle presets, screen effects
+    backgrounds/   # Parallax background drawing
+  ui/              # React UI overlay components
+  stores/          # Zustand stores
+  constants/       # Physics constants, color palettes, game config
+  types/           # Shared TypeScript interfaces
+```
+
+Note: the original spec had `src/art/` for SVG components. Since we use Canvas, the art responsibility moves to `src/rendering/` which contains all procedural drawing code.
+
+### Windows/Laragon Specifics
+- The scaffolding command must set PATH to include `/c/laragon/bin/nodejs/node-v22` before running npm
+- Use `npx create-vite@latest . --template react-ts` (dot = current directory)
+
+---
+
+## Phase 1: Engine Core (MOST CRITICAL)
+
+### Goal
+Build the foundational game engine: game loop, physics, input, camera, animation state machine, and the Canvas-React integration bridge. This phase produces a black screen with a moving colored rectangle that responds to input -- proving the engine works.
+
+### Canvas-React Integration Architecture
+
+The pattern (proven by both reference games) is:
+
+```
+React Component (GameCanvas.tsx)
+  |-- useRef<HTMLCanvasElement>  // owns the Canvas DOM element
+  |-- useRef<GameEngine>        // owns the engine instance
+  |-- useEffect (mount)         // creates engine, starts loop
+  |-- useEffect (cleanup)       // stops loop on unmount
+  |-- renders: <canvas> + UI overlay children
+```
+
+The game engine runs entirely outside React's render cycle. React only re-renders when Zustand store values change (HP, inventory, dialogue state). The Canvas is never re-rendered by React -- it is painted every frame by the game loop.
+
+### Files to Create
+
+**`src/types/index.ts`** -- Core type definitions shared across the entire project.
+```typescript
+// Fundamental types used everywhere
+export interface Vec2 { x: number; y: number; }
+export interface Rect { x: number; y: number; w: number; h: number; }
+export type Facing = 'left' | 'right';
+
+export type EntityState = 
+  | 'idle' | 'run' | 'jump' | 'fall' 
+  | 'wall-slide' | 'ledge-grab' | 'ledge-climb'
+  | 'roll' | 'attack' | 'attack-air' 
+  | 'bow-draw' | 'bow-release'
+  | 'hurt' | 'die' | 'interact';
+
+export interface AnimationDef {
+  frames: number;        // number of frames in this animation
+  frameDuration: number; // seconds per frame
+  loop: boolean;         // does it loop?
+  next?: EntityState;    // state to transition to when done (if not looping)
+}
+
+export interface AABB {
+  left: number; top: number; right: number; bottom: number;
+}
+
+export interface TileCollision {
+  solid: boolean;
+  platform: boolean;  // one-way platform (pass through from below)
+  ladder: boolean;
+  hazard: boolean;
+  hazardType?: 'spikes' | 'lava' | 'void';
+}
+
+export interface LevelData {
+  id: string;
+  name: string;
+  type: 'combat' | 'mystery';
+  tilemap: {
+    width: number;   // in tiles
+    height: number;  // in tiles
+    layers: {
+      background: number[][];
+      collision: number[][];
+      foreground: number[][];
+      decoration: number[][];
+    };
+  };
+  playerSpawn: Vec2;
+  exit: Vec2 & { type: string };
+  enemies: EnemySpawn[];
+  traps: TrapDef[];
+  npcs: NPCSpawn[];
+  items: ItemSpawn[];
+  clues: ClueDef[];
+  lights: LightDef[];
+}
+
+export interface LightDef {
+  x: number; y: number;
+  radius: number;
+  color: string;
+  intensity: number;
+  flicker: boolean;
+}
+```
+
+**`src/constants/physics.ts`** -- All physics tuning constants (from engine-agent.md).
+```typescript
+export const PHYSICS = {
+  GRAVITY: 980,
+  MAX_FALL_SPEED: 600,
+  RUN_SPEED: 200,
+  RUN_ACCEL: 1200,
+  RUN_DECEL: 800,
+  JUMP_VELOCITY: -420,
+  JUMP_CUT: 0.4,
+  COYOTE_TIME: 0.150,    // seconds
+  JUMP_BUFFER: 0.100,    // seconds
+  WALL_SLIDE_SPEED: 80,
+  WALL_JUMP_VELOCITY: { x: 250, y: -380 },
+  LEDGE_GRAB_THRESHOLD: 12,  // pixels of tolerance
+  ROLL_SPEED: 300,
+  ROLL_DURATION: 0.4,
+  ROLL_IFRAMES: 0.3,
+  TILE_SIZE: 48,
+  VIEWPORT_WIDTH: 960,    // 20 tiles wide
+  VIEWPORT_HEIGHT: 540,   // ~11.25 tiles tall (16:9)
+} as const;
+```
+
+**`src/constants/game.ts`** -- Game-wide constants (colors, timing, etc.).
+```typescript
+export const GAME = {
+  CANVAS_WIDTH: 960,
+  CANVAS_HEIGHT: 540,
+  TARGET_FPS: 60,
+  MAX_DT: 1/30,  // cap delta time to prevent spiral of death
+  PLAYER_MAX_HP: 5,
+  INVULN_DURATION: 1.0,
+  HIT_FLASH_DURATION: 0.15,
+} as const;
+
+export const COLORS = {
+  BG_DEEP: '#0a0a12',
+  STONE: '#2a2a3a',
+  STONE_LIGHT: '#3a3a4e',
+  GOLD: '#c9a030',
+  BLOOD: '#8b1a1a',
+  MAGIC: '#4a6fa5',
+  POISON: '#3a6b35',
+  OUTLINE: '#1a1a2e',
+  TEXT: '#d4c9a8',
+} as const;
+```
+
+**`src/engine/GameLoop.ts`** -- The core game loop using requestAnimationFrame with fixed timestep accumulation.
+
+Key design: Uses a semi-fixed timestep. The loop accumulates real elapsed time and steps physics in fixed increments (1/60s) while rendering at the display refresh rate. This ensures deterministic physics regardless of frame rate.
+
+```typescript
+export class GameLoop {
+  private running = false;
+  private lastTime = 0;
+  private accumulator = 0;
+  private readonly fixedDt = 1 / 60;
+  private rafId = 0;
+  
+  private updateFn: (dt: number) => void;
+  private renderFn: (interp: number) => void;
+  
+  start(): void;   // begins rAF loop
+  stop(): void;     // cancels rAF
+  private tick(timestamp: number): void;  // main loop body
+}
+```
+
+The `tick` method:
+1. Computes elapsed time, caps at MAX_DT
+2. Accumulates time
+3. Runs fixed-step updates (while accumulator >= fixedDt)
+4. Calls render with interpolation factor (accumulator / fixedDt)
+5. Requests next frame
+
+**`src/engine/InputManager.ts`** -- Poll-based keyboard input with buffering.
+
+Follows the pattern from RealmOfShadows v1's Input system but adapted for TypeScript. Key features:
+- `keys` map: currently held keys
+- `justPressed` buffer: keys pressed this frame (consumed once)
+- `justReleased` buffer: keys released this frame
+- Action mapping: maps physical keys to game actions (`moveLeft`, `moveRight`, `jump`, `attack`, `interact`, `inventory`, `pause`)
+- Jump buffering: remembers jump press for 100ms even if player wasn't grounded yet
+- Prevents browser defaults for game keys
+
+```typescript
+export type GameAction = 
+  | 'moveLeft' | 'moveRight' | 'moveUp' | 'moveDown'
+  | 'jump' | 'attack' | 'interact' | 'inventory' | 'pause' | 'roll';
+
+export class InputManager {
+  private keys: Map<string, boolean>;
+  private justPressedBuffer: Map<string, boolean>;
+  private justReleasedBuffer: Map<string, boolean>;
+  private actionMap: Map<string, GameAction>;
+  
+  // Jump buffer tracking
+  private jumpBufferTimer: number;
+  
+  init(): void;          // attaches event listeners
+  destroy(): void;       // removes event listeners
+  update(dt: number): void;  // syncs buffers, decrements timers
+  isDown(action: GameAction): boolean;
+  isJustPressed(action: GameAction): boolean;
+  isJustReleased(action: GameAction): boolean;
+  getHorizontalAxis(): number;  // -1, 0, or 1
+  isJumpBuffered(): boolean;    // true if jump pressed within buffer window
+  consumeJumpBuffer(): void;
+}
+```
+
+**`src/engine/Physics.ts`** -- Gravity, AABB collision detection, and tile-based collision resolution.
+
+The physics system operates on a collision grid (the `collision` layer from level JSON). Each tile is categorized as: empty, solid, platform (one-way), ladder, or hazard.
+
+Core algorithms:
+- **Broadphase**: only check tiles near the entity (based on entity AABB expanded by velocity)
+- **AABB overlap test**: standard min/max comparison
+- **Collision resolution**: move on X axis first, resolve X collisions, then move on Y axis, resolve Y collisions (axis-separated). This prevents corner-catching bugs.
+- **Platform handling**: entities pass through one-way platforms when moving upward (vy < 0) and collide when moving downward
+- **Grounded detection**: cast a 1px ray downward from entity bottom to detect ground contact
+
+```typescript
+export class Physics {
+  private collisionMap: number[][];
+  private tileSize: number;
+  
+  setCollisionMap(map: number[][], tileSize: number): void;
+  
+  moveAndCollide(entity: PhysicsBody, dt: number): CollisionResult;
+  isGrounded(entity: PhysicsBody): boolean;
+  isTouchingWall(entity: PhysicsBody, direction: -1 | 1): boolean;
+  isNearLedge(entity: PhysicsBody, direction: -1 | 1): LedgeInfo | null;
+  
+  // Utility
+  tileAt(worldX: number, worldY: number): number;
+  isSolid(tileX: number, tileY: number): boolean;
+  isPlatform(tileX: number, tileY: number): boolean;
+  
+  applyGravity(entity: PhysicsBody, dt: number): void;
+}
+
+interface PhysicsBody {
+  x: number; y: number;
+  vx: number; vy: number;
+  width: number; height: number;
+}
+
+interface CollisionResult {
+  collidedX: boolean;
+  collidedY: boolean;
+  grounded: boolean;
+  hitCeiling: boolean;
+  touchingWallLeft: boolean;
+  touchingWallRight: boolean;
+}
+```
+
+**`src/engine/Camera.ts`** -- Smooth-follow camera with parallax support and level bounds clamping.
+
+The camera follows the player with smooth interpolation (lerp), looks ahead in the direction the player is facing, and clamps to level boundaries so empty space is never shown.
+
+```typescript
+export class Camera {
+  x: number;
+  y: number;
+  private targetX: number;
+  private targetY: number;
+  
+  readonly viewWidth: number;   // GAME.CANVAS_WIDTH
+  readonly viewHeight: number;  // GAME.CANVAS_HEIGHT
+  
+  private smoothing: number;      // lerp factor (0.08)
+  private lookaheadX: number;     // pixels to look ahead (60)
+  
+  follow(target: Vec2, facing: Facing): void;
+  update(dt: number): void;
+  clampToLevel(levelWidthPx: number, levelHeightPx: number): void;
+  
+  // Transform helpers
+  worldToScreen(worldX: number, worldY: number): Vec2;
+  screenToWorld(screenX: number, screenY: number): Vec2;
+  
+  // For parallax: returns camera offset scaled by depth factor
+  getParallaxOffset(depthFactor: number): Vec2;
+  
+  // Visible area for culling
+  getVisibleBounds(): Rect;
+}
+```
+
+**`src/engine/AnimationSystem.ts`** -- State machine for entity animation.
+
+Each entity has an `AnimationController` that tracks current state, current frame, frame timer, and handles transitions. The system enforces animation rules (e.g., "attack" cannot be interrupted, "hurt" plays once then returns to idle, "die" plays once and stops).
+
+```typescript
+export class AnimationController {
+  currentState: EntityState;
+  currentFrame: number;
+  private frameTimer: number;
+  private animations: Map<EntityState, AnimationDef>;
+  private locked: boolean;  // prevents state changes during locked animations (attack, hurt)
+  
+  constructor(animations: Map<EntityState, AnimationDef>);
+  
+  setState(newState: EntityState, force?: boolean): void;
+  update(dt: number): void;
+  isComplete(): boolean;  // for non-looping animations
+  
+  // Returns data needed by the renderer
+  getDrawState(): { state: EntityState; frame: number; };
+}
+```
+
+**`src/engine/Entity.ts`** -- Base entity class.
+
+```typescript
+export abstract class Entity {
+  x: number; y: number;
+  vx: number; vy: number;
+  width: number; height: number;
+  facing: Facing;
+  active: boolean;
+  animation: AnimationController;
+  
+  abstract update(dt: number, context: UpdateContext): void;
+  
+  getAABB(): AABB;
+  getCenter(): Vec2;
+}
+
+export interface UpdateContext {
+  physics: Physics;
+  input: InputManager;
+  camera: Camera;
+  entities: Entity[];
+  level: LevelData;
+  particles: ParticleSystem;
+  combat: CombatSystem;
+}
+```
+
+**`src/engine/GameCanvas.tsx`** -- The React component that hosts the Canvas and bridges to the engine.
+
+This is the critical integration point between React and the game engine.
+
+```typescript
+export const GameCanvas: React.FC<{ levelId: string }> = ({ levelId }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const engineRef = useRef<GameEngine | null>(null);
+  
+  useEffect(() => {
+    const canvas = canvasRef.current!;
+    const ctx = canvas.getContext('2d')!;
+    
+    // Create and start engine
+    const engine = new GameEngine(canvas, ctx);
+    engineRef.current = engine;
+    engine.loadLevel(levelId);
+    engine.start();
+    
+    return () => { engine.stop(); };
+  }, [levelId]);
+  
+  return (
+    <div className={styles.gameContainer}>
+      <canvas 
+        ref={canvasRef}
+        width={GAME.CANVAS_WIDTH}
+        height={GAME.CANVAS_HEIGHT}
+        className={styles.canvas}
+      />
+      {/* React UI overlays render here as children */}
+      <HUD />
+      <DialogueBox />
+      <PauseMenu />
+    </div>
+  );
+};
+```
+
+**`src/engine/GameEngine.ts`** -- Top-level engine orchestrator that ties everything together.
+
+```typescript
+export class GameEngine {
+  private canvas: HTMLCanvasElement;
+  private ctx: CanvasRenderingContext2D;
+  private gameLoop: GameLoop;
+  private input: InputManager;
+  private physics: Physics;
+  private camera: Camera;
+  private renderer: Renderer;
+  private particles: ParticleSystem;
+  
+  private player: Player;
+  private entities: Entity[];
+  private level: LevelData;
+  
+  constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D);
+  
+  loadLevel(levelId: string): void;
+  start(): void;
+  stop(): void;
+  
+  private update(dt: number): void;   // called by GameLoop at fixed rate
+  private render(interp: number): void; // called by GameLoop each frame
+}
+```
+
+### Phase 1 Deliverable
+A canvas showing a colored rectangle (player placeholder) that responds to WASD/arrows, jumps with Space, has gravity, lands on a simple test floor, and the camera follows smoothly. This validates the entire engine pipeline.
+
+---
+
+## Phase 2: Player Character + Art System
+
+### Goal
+Build the full Player entity with all Prince-of-Persia movement states, and establish the procedural art rendering system that will be used for all game graphics.
+
+### Player Movement State Machine
+
+The player has these states, with transitions following PoP-style feel:
+
+```
+idle <-> run <-> jump -> fall -> (land) -> idle
+         |                |
+         v                v
+       roll          wall-slide -> wall-jump -> fall
+                          |
+                     ledge-grab -> ledge-climb -> idle
+                     
+Any state -> hurt -> idle (or die)
+idle/run -> attack -> idle
+jump/fall -> attack-air -> fall
+```
+
+Key movement features (from engine-agent.md):
+- **Momentum**: acceleration/deceleration curves, not instant velocity changes
+- **Variable jump**: holding Space goes higher; releasing early multiplies vy by JUMP_CUT (0.4)
+- **Coyote time**: 150ms after walking off a ledge, player can still jump
+- **Jump buffering**: pressing Space up to 100ms before landing triggers jump on landing
+- **Wall slide**: touching wall + holding into it while falling = reduced fall speed (80px/s)
+- **Ledge grab**: when falling near a platform edge, auto-detect and transition to hang state
+- **Roll**: dodge through enemies with i-frames (300ms), travels at 300px/s for 0.4s
+
+### Files to Create
+
+**`src/entities/Player.ts`** -- The player entity with full PoP movement.
+
+```typescript
+export class Player extends Entity {
+  hp: number;
+  maxHp: number;
+  invulnTimer: number;
+  
+  // Movement state tracking
+  private coyoteTimer: number;
+  private jumpBufferTimer: number;
+  private rollTimer: number;
+  private rollDirection: number;
+  private isRolling: boolean;
+  private attackTimer: number;
+  
+  // Wall interaction
+  private wallDirection: -1 | 0 | 1;
+  private ledgeInfo: LedgeInfo | null;
+  
+  update(dt: number, ctx: UpdateContext): void {
+    // 1. Read input
+    // 2. Update coyote/buffer timers
+    // 3. State-specific logic (movement, gravity, wall checks)
+    // 4. Apply physics via ctx.physics.moveAndCollide
+    // 5. Update animation controller
+    // 6. Push state to Zustand store (HP, position, facing)
+  }
+}
+```
+
+**`src/rendering/Renderer.ts`** -- The master rendering pipeline.
+
+This is the central rendering coordinator. It draws the complete frame in correct order:
+
+```typescript
+export class Renderer {
+  private ctx: CanvasRenderingContext2D;
+  private camera: Camera;
+  
+  // Offscreen canvases for performance
+  private tileCache: OffscreenCanvas;     // pre-rendered static tiles
+  private tileCacheDirty: boolean;
+  private lightingCanvas: OffscreenCanvas; // dynamic lighting overlay
+  
+  render(state: RenderState, interp: number): void {
+    // RENDER PIPELINE ORDER:
+    // 1. Clear canvas
+    // 2. Draw parallax backgrounds (multi-layer, depth-scaled)
+    // 3. Save context, translate by camera offset
+    // 4. Draw background tile layer (from cache)
+    // 5. Draw decoration layer
+    // 6. Draw entities sorted by Y (enemies, NPCs, items)
+    // 7. Draw player
+    // 8. Draw foreground tile layer
+    // 9. Draw particles
+    // 10. Draw lighting overlay (dynamic lights + ambient darkness)
+    // 11. Restore context
+    // 12. Draw screen effects (vignette, screen shake offset, damage flash)
+  }
+  
+  renderTileCache(level: LevelData): void;  // pre-render static tiles once
+  renderLighting(lights: LightDef[], playerPos: Vec2): void;
+}
+```
+
+**`src/rendering/characters/PlayerRenderer.ts`** -- Procedural drawing of the Elf Ranger character.
+
+This draws the player using Canvas path operations, creating the bold vector/comic style. The approach (proven by DnDGame's `sprites.js`) is to compose characters from geometric shapes with bold outlines and flat color fills.
+
+```typescript
+export function drawPlayer(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number,
+  state: EntityState,
+  frame: number,
+  facing: Facing
+): void {
+  ctx.save();
+  ctx.translate(x + 24, y + 32);  // center of 48x64 character
+  if (facing === 'left') ctx.scale(-1, 1);
+  
+  // Character dimensions: 48x64 viewport
+  // Bold outline (3px), flat fills with cel-shading
+  
+  // Each state+frame combination adjusts limb positions:
+  // - idle: subtle breathing animation
+  // - run: 4-frame run cycle with leg/arm swing
+  // - jump: arms up, legs tucked
+  // - attack: sword swing arc
+  // etc.
+  
+  drawLegs(ctx, state, frame);
+  drawTorso(ctx, state, frame);
+  drawCloak(ctx, state, frame);  // flowing green cloak is key visual identity
+  drawArms(ctx, state, frame);
+  drawHead(ctx, state, frame);    // pointed ears, determined expression
+  drawEquipment(ctx, state, frame); // sword, bow, quiver
+  
+  // Cel-shading: draw a second pass with darker shade on shadow side
+  
+  ctx.restore();
+}
+```
+
+Design notes for "awesome graphics":
+- **Bold outlines**: every shape gets a 2-3px `strokeStyle` in `#1a1a2e` (near-black)
+- **Cel-shading**: each flat color has a darker variant for the shadow side (e.g., cloak green `#3a8a3a` light side, `#2a6a2a` shadow side)
+- **Strong silhouette**: character is immediately readable even at small size
+- **Flowing elements**: cloak and hair have secondary motion (offset timing from body)
+- **Squash and stretch**: subtle scale adjustments during jump anticipation, landing impact, attack swing
+
+**`src/rendering/characters/CharacterBase.ts`** -- Shared drawing utilities for all characters.
+
+```typescript
+// Utility functions for procedural character drawing
+export function drawOutlinedRect(ctx, x, y, w, h, fill, outline, lineWidth);
+export function drawOutlinedCircle(ctx, cx, cy, r, fill, outline, lineWidth);
+export function drawOutlinedPath(ctx, path: Path2D, fill, outline, lineWidth);
+export function applyCelShading(ctx, bounds: Rect, lightDirection: number, darkColor: string, alpha: number);
+export function drawEyes(ctx, x, y, size, expression: 'normal' | 'angry' | 'hurt' | 'dead');
+```
+
+**`src/rendering/SpriteAnimations.ts`** -- Animation definitions for all entity types.
+
+```typescript
+export const PLAYER_ANIMATIONS: Record<EntityState, AnimationDef> = {
+  idle:        { frames: 4, frameDuration: 0.3, loop: true },
+  run:         { frames: 6, frameDuration: 0.1, loop: true },
+  jump:        { frames: 2, frameDuration: 0.15, loop: false, next: 'fall' },
+  fall:        { frames: 2, frameDuration: 0.2, loop: true },
+  'wall-slide':{ frames: 2, frameDuration: 0.2, loop: true },
+  'ledge-grab':{ frames: 1, frameDuration: 0.5, loop: true },
+  'ledge-climb':{ frames: 4, frameDuration: 0.1, loop: false, next: 'idle' },
+  roll:        { frames: 4, frameDuration: 0.1, loop: false, next: 'idle' },
+  attack:      { frames: 4, frameDuration: 0.08, loop: false, next: 'idle' },
+  'attack-air':{ frames: 3, frameDuration: 0.1, loop: false, next: 'fall' },
+  hurt:        { frames: 2, frameDuration: 0.15, loop: false, next: 'idle' },
+  die:         { frames: 6, frameDuration: 0.15, loop: false },
+  interact:    { frames: 2, frameDuration: 0.2, loop: false, next: 'idle' },
+};
+```
+
+### Phase 2 Deliverable
+The player character (Elf Ranger) drawn procedurally with bold outlines and cel-shading, moving fluidly through a test level with all movement states working: run with momentum, variable-height jump, wall slide, ledge grab, roll. The character should look visually polished even at this stage.
+
+---
+
+## Phase 3: Tileset + Level 1
+
+### Goal
+Build the tile rendering system, the level loader, the parallax background system, dungeon environment art, and design Level 1 (Dungeon Escape).
+
+### Tile Rendering Architecture
+
+Following the proven pattern from DnDGame: static tiles are pre-rendered once to an offscreen Canvas (tile cache), then blitted to the main canvas each frame. Only dynamic tiles (doors, traps with changing state) are drawn live.
+
+**`src/rendering/tiles/TileRenderer.ts`** -- Pre-renders all tiles to the offscreen cache.
+
+```typescript
+export class TileRenderer {
+  private tileDrawers: Map<number, TileDrawFunc>;
+  
+  // Register drawing functions for each tile type
+  registerTileset(tileset: TilesetDef): void;
+  
+  // Pre-render all static tiles to offscreen canvas
+  renderCache(
+    layers: { background: number[][], collision: number[][] },
+    target: OffscreenCanvas
+  ): void;
+  
+  // Draw a single tile (for dynamic tiles)
+  drawTile(ctx: CanvasRenderingContext2D, tileId: number, x: number, y: number): void;
+}
+
+type TileDrawFunc = (ctx: CanvasRenderingContext2D, x: number, y: number, tileSize: number) => void;
+```
+
+**`src/rendering/tiles/DungeonTileset.ts`** -- Procedural dungeon tile art.
+
+Each tile type gets a drawing function that creates detailed stone dungeon visuals:
+
+```typescript
+// Tile IDs for dungeon tileset
+export const DUNGEON_TILES = {
+  EMPTY: 0,
+  STONE_FLOOR: 1,
+  STONE_WALL: 2,
+  STONE_CEILING: 3,
+  PLATFORM: 4,
+  LADDER: 5,
+  DOOR_CLOSED: 6,
+  DOOR_OPEN: 7,
+  TORCH_BRACKET: 8,
+  CHAINS: 9,
+  IRON_BARS: 10,
+  MOSS_STONE: 11,
+  CRACKED_STONE: 12,
+  PILLAR: 13,
+  ARCH: 14,
+};
+
+export function drawStoneFloor(ctx, x, y, size) {
+  // Base stone color with subtle variation
+  // Brick line pattern (mortar lines)
+  // Random micro-cracks and dirt spots for texture
+  // Bold 2px outline on edges for comic style
+}
+
+export function drawStoneWall(ctx, x, y, size) {
+  // Darker stone with brick pattern
+  // Highlight line at top edge for definition
+  // Subtle gradient for depth
+  // Moss patches (random, seeded by position)
+}
+
+export function drawTorch(ctx, x, y, size, time) {
+  // Wall bracket (dark iron)
+  // Flame drawn with bezier curves, animated
+  // Warm glow gradient around flame
+  // Smoke particle hint (small circles above)
+}
+```
+
+For the comic art style, every tile follows these rules:
+- 2px dark outline on all solid edges
+- Flat color fills, never smooth gradients except for lighting
+- Position-seeded random details (consistent between frames)
+- Clean, readable shapes at 48px scale
+
+**`src/rendering/backgrounds/ParallaxBackground.ts`** -- Multi-layer parallax background system.
+
+```typescript
+export class ParallaxBackground {
+  private layers: BackgroundLayer[];
+  
+  draw(ctx: CanvasRenderingContext2D, camera: Camera): void {
+    for (const layer of this.layers) {
+      const offset = camera.getParallaxOffset(layer.depth);
+      // Draw layer at offset, tile horizontally if needed
+      layer.draw(ctx, offset.x, offset.y, GAME.CANVAS_WIDTH, GAME.CANVAS_HEIGHT);
+    }
+  }
+}
+
+interface BackgroundLayer {
+  depth: number;  // 0.0 (far) to 1.0 (same as foreground)
+  draw: (ctx, offsetX, offsetY, w, h) => void;
+}
+```
+
+**`src/rendering/backgrounds/DungeonBackground.ts`** -- Dungeon-specific parallax layers.
+
+```typescript
+// Layer 0.1 (farthest): Deep darkness with faint stone texture
+// Layer 0.3: Distant dungeon architecture silhouettes
+// Layer 0.5: Mid-distance arches and corridors
+// Layer 0.7: Near pillars and walls with fog wisps
+```
+
+**`src/levels/LevelLoader.ts`** -- Loads level JSON and instantiates level objects.
+
+```typescript
+export class LevelLoader {
+  static async load(levelId: string): Promise<Level> {
+    const data: LevelData = await import(`../levels/data/${levelId}.json`);
+    return new Level(data);
+  }
+}
+
+export class Level {
+  data: LevelData;
+  collisionGrid: number[][];
+  widthPx: number;
+  heightPx: number;
+  entities: Entity[];
+  lights: LightDef[];
+  
+  constructor(data: LevelData);
+  getTileAt(x: number, y: number, layer: string): number;
+  getSpawnedEntities(): Entity[];
+}
+```
+
+**`src/levels/data/level1_dungeon_escape.json`** -- Level 1 layout (120x20 tiles).
+
+This is a 5760x960 pixel level. Design:
+- Start: player in a cell, iron bars open
+- Section 1: Tutorial corridor (learn movement, jump onto platforms)
+- Section 2: First enemy encounter (2 orcs)
+- Section 3: Vertical shaft with platforms and wall-slide needed
+- Section 4: Trap gauntlet (spikes, crumbling floor)
+- Section 5: Final combat (3 orcs + orc shaman)
+- Exit: large door leading to surface
+
+### Phase 3 Deliverable
+Level 1 fully rendered with procedural dungeon tiles, parallax background, torch light effects, and the player navigating the environment. No enemies or traps active yet -- just the world and movement.
+
+---
+
+## Phase 4: Combat + Enemies + Traps
+
+### Goal
+Implement the combat system, enemy AI, trap mechanics, particle effects, and visual effects (screen shake, hit flash, damage numbers).
+
+### Files to Create
+
+**`src/systems/CombatSystem.ts`** -- Manages HP, damage, hitboxes, invulnerability frames, and combo chains.
+
+```typescript
+export class CombatSystem {
+  // Attack hitbox generation based on player facing and attack frame
+  getAttackHitbox(attacker: Entity, attackFrame: number): AABB;
+  
+  // Process a hit: apply damage, trigger i-frames, spawn VFX
+  processHit(attacker: Entity, defender: Entity, damage: number): HitResult;
+  
+  // Check if entity is invulnerable
+  isInvulnerable(entity: Entity): boolean;
+  
+  // Player-specific: combo chain tracking
+  registerAttack(timestamp: number): ComboState;
+}
+
+interface HitResult {
+  damage: number;
+  knockback: Vec2;
+  killed: boolean;
+}
+```
+
+**`src/entities/enemies/Orc.ts`** -- Melee grunt enemy with patrol/aggro AI.
+
+AI state machine:
+```
+patrol -> aggro -> chase -> attack -> cooldown -> chase
+                                    -> patrol (lost aggro)
+Any -> hurt -> (resume previous)
+Any -> die
+```
+
+```typescript
+export class Orc extends Entity {
+  hp: number;
+  damage: number;
+  
+  // AI state
+  private aiState: 'patrol' | 'aggro' | 'chase' | 'attack' | 'cooldown' | 'hurt' | 'die';
+  private patrolRange: [number, number];  // x-coordinates
+  private aggroRange: number;             // detection distance
+  private attackRange: number;
+  private attackCooldown: number;
+  
+  update(dt: number, ctx: UpdateContext): void;
+  
+  private patrol(dt: number): void;
+  private checkAggro(playerPos: Vec2): boolean;
+  private chase(dt: number, playerPos: Vec2): void;
+  private attack(dt: number): void;
+}
+```
+
+**`src/entities/enemies/OrcShaman.ts`** -- Ranged magic enemy.
+- Keeps distance from player
+- Fires projectiles at intervals
+- Projectiles are entities that travel in a line and deal damage on contact
+
+**`src/entities/enemies/SkeletonGuard.ts`** -- Patrol enemy with shield.
+- Similar to Orc but blocks frontal attacks when facing player
+- Must be hit from behind or with roll-through
+
+**`src/systems/TrapSystem.ts`** -- Manages timing-based hazards.
+
+```typescript
+export class TrapSystem {
+  private traps: Trap[];
+  
+  update(dt: number, player: Player): void;
+  
+  // Each trap type has its own timing and behavior
+  registerTrap(def: TrapDef): void;
+}
+
+interface Trap {
+  type: 'spikes' | 'blade' | 'crumbling' | 'pressure-plate';
+  position: Rect;
+  state: 'idle' | 'armed' | 'active' | 'cooldown';
+  timing: { on: number; off: number; delay?: number };
+  damage: number;
+}
+```
+
+Trap types:
+- **Spikes**: cycle between retracted (safe) and extended (damage). Timing-based, visual telegraph (2-frame rise).
+- **Guillotine blades**: swing horizontally with timing. Must wait for gap.
+- **Crumbling floors**: collapse a short time after player steps on them, then regenerate.
+- **Pressure plates**: trigger events (open doors, spawn enemies, activate other traps).
+
+**`src/rendering/effects/ParticleSystem.ts`** -- Canvas-based particle system with pooling.
+
+Follows the excellent pattern from RealmOfShadows v1's `effects.js` but in TypeScript:
+
+```typescript
+export class ParticleSystem {
+  private pool: Particle[];
+  private activeCount: number;
+  private maxParticles: number;  // 500
+  
+  emit(preset: ParticlePreset, x: number, y: number, count?: number): void;
+  update(dt: number): void;
+  draw(ctx: CanvasRenderingContext2D, camera: Camera): void;
+  clear(): void;
+}
+
+// Particle types from the reference: circle, square, spark, ember, smoke, ring, star, shard
+type ParticleShape = 'circle' | 'square' | 'spark' | 'ember' | 'smoke' | 'ring' | 'star' | 'shard';
+
+interface Particle {
+  x: number; y: number;
+  vx: number; vy: number;
+  life: number; maxLife: number;
+  color: string;
+  size: number; startSize: number; endSize: number;
+  alpha: number;
+  gravity: number;
+  friction: number;
+  shape: ParticleShape;
+  rotation: number; rotSpeed: number;
+  glow: number;      // shadowBlur radius for glow effect
+  flicker: boolean;
+  active: boolean;
+}
+```
+
+**`src/rendering/effects/ParticlePresets.ts`** -- Pre-defined particle effect configurations.
+
+```typescript
+export const PRESETS = {
+  hitSparks: { /* orange/white sparks burst, short life, high speed */ },
+  bloodSplatter: { /* dark red particles, gravity, spread */ },
+  dustPuff: { /* tan dust on landing, low gravity, fade out */ },
+  swordSlash: { /* white arc trail following sword path */ },
+  orcDeath: { /* green smoke dissolve */ },
+  spikeDamage: { /* red + bone-white shard burst */ },
+  torchFire: { /* continuous orange/yellow embers rising */ },
+  magicBolt: { /* blue/purple trail particles */ },
+  crumbleDebris: { /* stone-colored chunks with gravity */ },
+};
+```
+
+**`src/rendering/effects/ScreenEffects.ts`** -- Full-screen visual effects.
+
+```typescript
+export class ScreenEffects {
+  // Screen shake
+  private shakeIntensity: number;
+  private shakeDecay: number;
+  getShakeOffset(): Vec2;
+  triggerShake(intensity: number, duration: number): void;
+  
+  // Vignette (permanent dark edges)
+  drawVignette(ctx: CanvasRenderingContext2D): void;
+  
+  // Damage flash (red overlay)
+  private flashAlpha: number;
+  triggerDamageFlash(): void;
+  drawFlash(ctx: CanvasRenderingContext2D): void;
+  
+  // Hit freeze (brief pause for impact feel)
+  private freezeTimer: number;
+  triggerHitFreeze(duration: number): void; // 50ms typical
+  isFrozen(): boolean;
+  
+  // Chromatic aberration on damage
+  drawChromaticAberration(ctx: CanvasRenderingContext2D, intensity: number): void;
+  
+  update(dt: number): void;
+}
+```
+
+**`src/rendering/effects/LightingEngine.ts`** -- Dynamic lighting system.
+
+Follows the RealmOfShadows v1 lighting pattern: uses an offscreen Canvas, fills it with ambient darkness, then punches holes using `destination-out` composite mode for each light source. Then adds colored glow using `lighter` composite mode.
+
+```typescript
+export class LightingEngine {
+  private lightCanvas: OffscreenCanvas;
+  private lightCtx: OffscreenCanvasRenderingContext2D;
+  
+  private ambientDarkness: number;  // 0.0-1.0
+  private ambientColor: string;     // tinted darkness per level
+  private lights: LightSource[];
+  
+  setAmbient(darkness: number, color: string): void;
+  setLights(lights: LightSource[]): void;
+  addDynamicLight(light: LightSource): void;  // for temporary lights (explosions, magic)
+  
+  render(
+    ctx: CanvasRenderingContext2D,
+    camera: Camera,
+    playerPos: Vec2,
+    time: number
+  ): void {
+    // 1. Fill light canvas with ambient darkness
+    // 2. Set composite to 'destination-out'
+    // 3. Draw radial gradient circles for each light (punching through darkness)
+    //    - Player always has a personal light
+    //    - Torches have flickering radius
+    //    - Dynamic lights from combat/magic
+    // 4. Reset composite to 'source-over'
+    // 5. Draw colored warm glow layer under cut-out areas (destination-over)
+    // 6. Composite light canvas onto main canvas
+  }
+}
+
+interface LightSource {
+  x: number; y: number;
+  radius: number;
+  color: string;
+  intensity: number;
+  flicker: boolean;
+  flickerSpeed?: number;
+  flickerAmount?: number;
+}
+```
+
+**`src/rendering/characters/OrcRenderer.ts`** -- Procedural drawing for Orc enemy.
+
+```typescript
+export function drawOrc(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number,
+  state: EntityState, frame: number, facing: Facing,
+  hitFlash: boolean
+): void {
+  // Brown-green skin, crude leather armor, tusks
+  // Heavy build, thick limbs
+  // Carries a club or mace
+  // Bold outlines + cel-shading same as player
+  // hitFlash: draw white overlay when hit
+}
+```
+
+### What Makes Graphics "Awesome" in This Phase
+1. **Hit impact**: screen shake + hit freeze (50ms pause) + particle burst + damage number popup + knockback
+2. **Sword trail**: white/blue arc trail particles following the attack swing
+3. **Death effects**: enemies dissolve in colored particle burst, not just disappear
+4. **Dynamic lighting**: torches cast warm flickering light, combat spells create temporary lights
+5. **Ambient atmosphere**: vignette edges, depth fog on background layers, floating dust particles
+
+### Phase 4 Deliverable
+Level 1 with working combat: player can attack orcs, take damage, dodge traps, see particle effects, screen shakes on hits, dynamic lighting from torches. Enemies patrol, detect player, chase, and attack.
+
+---
+
+## Phase 5: UI Layer (React Overlay)
+
+### Goal
+Build all React UI components that sit on top of the Canvas: HUD, menus, dialogue box, game over, pause screen.
+
+### Files to Create
+
+**`src/stores/gameStore.ts`** -- Zustand store for core game state.
+```typescript
+interface GameState {
+  screen: 'menu' | 'playing' | 'paused' | 'gameover' | 'victory' | 'transition';
+  currentLevel: string;
+  isLoading: boolean;
+  // Actions
+  setScreen: (screen: string) => void;
+  loadLevel: (levelId: string) => void;
+}
+```
+
+**`src/stores/playerStore.ts`** -- Zustand store for player-visible state.
+```typescript
+interface PlayerState {
+  hp: number;
+  maxHp: number;
+  inventory: InventoryItem[];
+  equippedWeapon: string;
+  cluesFound: string[];
+  // Updated from game engine each frame (only when changed)
+}
+```
+
+**`src/stores/dialogueStore.ts`** -- Zustand store for dialogue system state.
+```typescript
+interface DialogueState {
+  isActive: boolean;
+  npcName: string;
+  portrait: string;
+  text: string;
+  choices: DialogueChoice[];
+  typewriterProgress: number;
+  advance: () => void;
+  selectChoice: (index: number) => void;
+}
+```
+
+**`src/ui/HUD.tsx`** -- Heads-up display overlay.
+- Top-left: heart icons for HP (Prince of Persia style, not a bar)
+- Top-center: level name in MedievalSharp font
+- Bottom-center: quick item slots (3 slots)
+- Floating damage numbers
+- All CSS Modules, dark fantasy styling
+
+**`src/ui/HUD.module.css`** -- CSS Module for HUD.
+
+**`src/ui/MainMenu.tsx`** -- Title screen with animated title, "New Game" / "Continue" / "Settings".
+- Full-screen, animated parallax background
+- Title in MedievalSharp with golden glow text-shadow
+- Buttons with hover effects
+
+**`src/ui/PauseMenu.tsx`** -- Pause overlay with blurred background.
+- Resume, Settings, Quit to Menu
+- Backdrop-filter: blur(8px) on the canvas underneath
+
+**`src/ui/GameOver.tsx`** -- Death screen.
+- Red-tinted overlay, "You Died" text, "Try Again" button
+- CSS animation: fade in, text scale-up
+
+**`src/ui/LevelTransition.tsx`** -- Cinematic transition between levels.
+- Narration text over dark background
+- Slow text reveal (typewriter effect)
+- "Press any key to continue"
+
+**`src/ui/DialogueBox.tsx`** -- NPC dialogue box for mystery levels.
+- Bottom third of screen
+- NPC name and portrait (left)
+- Text with typewriter effect (right)
+- Choice buttons appear after text finishes
+- Parchment-style background with CSS texture
+
+### Phase 5 Deliverable
+All menus functional: can navigate from Main Menu to Game, pause/resume, die and retry. HUD shows health hearts updating in real time. Dark fantasy visual polish on all UI.
+
+---
+
+## Phase 6: Level 1 Complete Playthrough
+
+### Goal
+Integration testing and polish. Level 1 should be playable from spawn to exit door, hitting 60fps with responsive controls.
+
+### Integration Checklist
+1. Main Menu -> "New Game" -> Level transition narration -> Level 1 loads
+2. Player spawns in cell, moves through dungeon
+3. Encounters 8 orcs in groups of 2-3
+4. Dodges 5 trap sections (spikes, blades, crumbling)
+5. Reaches exit door -> Level complete screen
+6. Death -> Game Over -> Retry restarts level
+7. Pause/Resume works at any point
+8. 60fps stable (profile with Chrome DevTools)
+9. Controls feel tight and responsive (input latency < 1 frame)
+10. All particle effects, lighting, screen effects working
+
+### Performance Optimization Targets
+- Tile cache: drawn once, blitted each frame (no per-tile redraw)
+- Entity culling: only draw entities visible to camera
+- Particle pool: pre-allocated, no GC churn
+- Lighting: single offscreen canvas, reused each frame
+- Avoid `ctx.save()/restore()` in tight loops (use manual transform resets)
+
+---
+
+## Phase 7: Mystery Systems (Outline)
+
+### Files to Create
+- `src/systems/DialogueSystem.ts` -- Branching dialogue tree engine
+- `src/systems/ClueSystem.ts` -- Clue collection, tracking, deduction logic
+- `src/systems/InventorySystem.ts` -- Item management (keys, potions, clues)
+- `src/ui/ClueBoard.tsx` -- Visual clue connection board
+- `src/ui/InventoryScreen.tsx` -- Full inventory grid with item details
+
+### Key Design
+- Clues are collected via interaction (X key) with objects and NPC dialogue choices
+- ClueBoard shows collected clues as cards on a cork-board
+- Player connects 3 clues to form a "theory" and submits
+- Correct theory progresses the level; wrong theory spawns enemies as penalty
+- 4-6 clues per mystery level, 1-2 red herrings
+
+---
+
+## Phase 8: Level 2 -- Forgotten Library (Outline)
+
+### Files to Create
+- `src/levels/data/level2_forgotten_library.json` -- Level layout (80x25 tiles)
+- `src/rendering/tiles/LibraryTileset.ts` -- Dark wood, bookshelves, candles, cobwebs
+- `src/rendering/backgrounds/LibraryBackground.ts` -- Parallax layers
+- `src/rendering/characters/WizardNPCRenderer.ts` -- Wizard character art
+- `src/rendering/characters/ElvenSageRenderer.ts` -- Elven Sage art
+- `src/rendering/characters/SkeletonGuardRenderer.ts` -- Skeleton guard art
+- NPC dialogue JSON definitions
+
+### Key Design
+- Lighter combat (2 skeleton guards)
+- 5 clues + 2 red herrings about the Scroll of Binding
+- WizardNPC gives hints through branching dialogue
+- Hidden rooms accessible through bookshelves
+- Atmospheric: floating books, flickering candles, arcane symbols glowing
+
+---
+
+## Phase 9: Levels 3-5 (Outline)
+
+### Level 3: Bridge of Trials (Combat)
+- New tiles: rope, wooden planks, void below
+- 15 mixed enemies (orcs + orc shamans)
+- 12 traps, heavy platforming
+- Bridge collapses in sections (timed escape sequence)
+- New enemy: OrcShaman with ranged magic
+
+### Level 4: Cursed Village (Mystery)
+- New tiles: cobblestone, timber houses, withered trees
+- Stone statue villagers (inspectable for clues)
+- 4 guards, 6 traps
+- Dragon's curse investigation leading to Level 5
+- Merchant NPC for buying supplies
+
+### Level 5: Dragon Spire (Boss)
+- New tiles: obsidian, lava veins, crystal formations
+- Dragon boss with 3 phases:
+  - Phase 1: Ground combat (swipe, tail attacks)
+  - Phase 2: Flight (fire breath sweeps, use pillars for cover)
+  - Phase 3: Wounded (faster, arena crumbles, use Scroll of Binding)
+- `src/entities/enemies/Dragon.ts` -- Boss entity with phase state machine
+- `src/rendering/characters/DragonRenderer.ts` -- Large multi-part dragon drawing
+
+---
+
+## Phase 10: Polish (Outline)
+
+### Features
+- `src/systems/ProgressionSystem.ts` -- Save/load to localStorage, level unlock tracking
+- `src/entities/npcs/Merchant.ts` -- Item shop between levels
+- Audio hooks via Howler.js (placeholder sound references, ready for real assets)
+- Touch controls overlay for mobile
+- Responsive viewport scaling (CSS transform to fit various screen sizes)
+- Additional particle effects: environmental (rain on bridge, snow in spire)
+- Color grading per level (subtle full-screen color overlay like RealmOfShadows v1's `drawColorGrade`)
+- Final animation and timing polish pass
+
+---
+
+## Rendering Pipeline -- Detailed Draw Order
+
+Every frame, the rendering pipeline executes in this exact order:
+
+```
+1. Clear canvas (fillRect with bg-deep)
+2. Apply screen shake offset (translate)
+3. Draw parallax background layers (far to near, camera-offset scaled by depth)
+4. ctx.save() + translate(-camera.x, -camera.y) -- enter world space
+5. Draw background tile cache (single drawImage from OffscreenCanvas)
+6. Draw decoration layer tiles
+7. Draw items on ground (potions, keys, clue objects)
+8. Draw traps (current animation frame based on trap state)
+9. Draw entities sorted by Y-position:
+   a. Dead entities (fading)
+   b. Enemies
+   c. NPCs  
+   d. Projectiles
+   e. Player
+10. Draw foreground tile layer (bars, arches that overlap entities)
+11. Draw particles (via ParticleSystem.draw)
+12. ctx.restore() -- exit world space
+13. Draw lighting overlay (LightingEngine.render -- composited on top)
+14. Draw screen effects:
+    a. Vignette (permanent, radial gradient dark edges)
+    b. Damage flash (red overlay, fading)
+    c. Color grade (level-specific tint)
+15. Draw HUD elements that are canvas-rendered (damage numbers, entity names)
+```
+
+Steps 1-15 all happen in the Canvas. Steps 16+ are the React overlay:
+```
+16. React renders HUD (hearts, item slots, level name) -- HTML/CSS on top
+17. React renders dialogue box if active
+18. React renders pause/gameover/menu screens if relevant
+```
+
+---
+
+## Key Architectural Decisions
+
+### 1. Canvas vs. SVG (Decision: Canvas)
+The old spec said SVG. We use Canvas because:
+- Both reference games use Canvas successfully
+- Canvas is better for per-frame procedural drawing (no DOM node overhead)
+- Lighting effects (radial gradients, composite modes) are native to Canvas
+- Particle systems are dramatically faster without DOM
+- 60fps is easier to maintain with Canvas
+
+### 2. Offscreen Canvases (Decision: Two)
+- **Tile cache**: pre-rendered once per level load, blitted every frame
+- **Lighting canvas**: redrawn every frame but composited once onto main canvas
+
+### 3. Art as Code vs. Sprite Sheets (Decision: Code)
+Since there are no external assets, all art is drawn procedurally via Canvas API. This is proven by DnDGame's `sprites.js` (49KB of procedural character drawing). Benefits:
+- No asset loading pipeline
+- Easy to adjust colors, proportions, animations
+- Scales to any resolution
+- Consistent comic art style enforced by shared utility functions
+
+### 4. React-Engine Communication (Decision: Zustand)
+The engine writes to Zustand stores (sparingly, only when values change). React reads from stores and re-renders UI. This keeps the game loop fast and React re-renders minimal.
+
+### 5. Fixed vs. Variable Timestep (Decision: Semi-Fixed)
+Use a fixed physics timestep (1/60s) with accumulation and render interpolation. This gives deterministic physics while allowing smooth rendering at any display refresh rate.
+
+---
+
+## Dependency Graph Between Phases
+
+```
+Phase 0 (scaffolding) 
+  |
+  v
+Phase 1 (engine core) -- MUST be solid before anything else
+  |
+  v
+Phase 2 (player + art system) -- depends on engine working
+  |
+  v
+Phase 3 (tiles + Level 1 layout) -- depends on player to test navigation
+  |
+  v
+Phase 4 (combat + enemies + traps) -- depends on tiles for collision context
+  |       |
+  v       v
+Phase 5 (UI layer) -- can start in parallel with Phase 4
+  |
+  v
+Phase 6 (Level 1 integration) -- depends on 4 and 5
+  |
+  v
+Phase 7 (mystery systems) -- depends on 6 being stable
+  |
+  v
+Phase 8 (Level 2) -- depends on 7
+  |
+  v
+Phase 9 (Levels 3-5) -- iterative, each builds on previous
+  |
+  v
+Phase 10 (Polish) -- final pass
+```
+
+---
+
+## Complete File List Summary
+
+### Phase 0 (8 files)
+- `package.json`
+- `tsconfig.json`
+- `tsconfig.node.json`
+- `vite.config.ts`
+- `index.html`
+- `src/main.tsx`
+- `src/App.tsx`
+- `src/theme.css`
+
+### Phase 1 (10 files)
+- `src/types/index.ts`
+- `src/constants/physics.ts`
+- `src/constants/game.ts`
+- `src/engine/GameLoop.ts`
+- `src/engine/InputManager.ts`
+- `src/engine/Physics.ts`
+- `src/engine/Camera.ts`
+- `src/engine/AnimationSystem.ts`
+- `src/engine/Entity.ts`
+- `src/engine/GameEngine.ts`
+- `src/engine/GameCanvas.tsx`
+
+### Phase 2 (5 files)
+- `src/entities/Player.ts`
+- `src/rendering/Renderer.ts`
+- `src/rendering/SpriteAnimations.ts`
+- `src/rendering/characters/CharacterBase.ts`
+- `src/rendering/characters/PlayerRenderer.ts`
+
+### Phase 3 (6 files)
+- `src/rendering/tiles/TileRenderer.ts`
+- `src/rendering/tiles/DungeonTileset.ts`
+- `src/rendering/backgrounds/ParallaxBackground.ts`
+- `src/rendering/backgrounds/DungeonBackground.ts`
+- `src/levels/LevelLoader.ts`
+- `src/levels/data/level1_dungeon_escape.json`
+
+### Phase 4 (11 files)
+- `src/systems/CombatSystem.ts`
+- `src/systems/TrapSystem.ts`
+- `src/entities/enemies/Orc.ts`
+- `src/entities/enemies/OrcShaman.ts`
+- `src/entities/enemies/SkeletonGuard.ts`
+- `src/rendering/characters/OrcRenderer.ts`
+- `src/rendering/effects/ParticleSystem.ts`
+- `src/rendering/effects/ParticlePresets.ts`
+- `src/rendering/effects/ScreenEffects.ts`
+- `src/rendering/effects/LightingEngine.ts`
+- `src/rendering/effects/DamageNumbers.ts`
+
+### Phase 5 (13 files)
+- `src/stores/gameStore.ts`
+- `src/stores/playerStore.ts`
+- `src/stores/dialogueStore.ts`
+- `src/ui/HUD.tsx` + `src/ui/HUD.module.css`
+- `src/ui/MainMenu.tsx` + `src/ui/MainMenu.module.css`
+- `src/ui/PauseMenu.tsx` + `src/ui/PauseMenu.module.css`
+- `src/ui/GameOver.tsx` + `src/ui/GameOver.module.css`
+- `src/ui/LevelTransition.tsx` + `src/ui/LevelTransition.module.css`
+- `src/ui/DialogueBox.tsx` + `src/ui/DialogueBox.module.css`
+
+---
+
+### Critical Files for Implementation
+
+- **`C:/Users/aiaco/ClaudeCode/SimpleGameforKidsTraining/RealmOfShadows2/src/engine/GameEngine.ts`** - Central orchestrator that ties game loop, physics, input, camera, and renderer together. Must be built first and correctly to avoid cascading integration issues.
+- **`C:/Users/aiaco/ClaudeCode/SimpleGameforKidsTraining/RealmOfShadows2/src/engine/Physics.ts`** - AABB collision and tile-based physics are the foundation of all gameplay. Incorrect physics breaks everything downstream.
+- **`C:/Users/aiaco/ClaudeCode/SimpleGameforKidsTraining/RealmOfShadows2/src/rendering/Renderer.ts`** - The rendering pipeline with correct draw order, offscreen canvas management, and camera transforms. Determines visual quality.
+- **`C:/Users/aiaco/ClaudeCode/SimpleGameforKidsTraining/RealmOfShadows2/src/entities/Player.ts`** - The most complex entity with ~12 movement states, PoP-style momentum, and tight integration with physics. Player feel defines the game.
+- **`C:/Users/aiaco/ClaudeCode/SimpleGameforKidsTraining/RealmOfShadows2/src/rendering/effects/LightingEngine.ts`** - Dynamic lighting via offscreen canvas compositing is the single biggest contributor to visual atmosphere. Pattern proven by `C:/Users/aiaco/ClaudeCode/SimpleGameforKidsTraining/RealmOfShadows/effects.js` lines 1090-1277.

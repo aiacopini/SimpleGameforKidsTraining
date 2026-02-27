@@ -1,0 +1,71 @@
+.overlay {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: var(--bg-deep);
+  padding: 0 80px;
+  z-index: var(--z-overlay);
+  animation: fadeIn 0.5s ease-out;
+}
+
+.chapter {
+  font-family: var(--font-display);
+  font-size: 36px;
+  color: var(--gold);
+  text-shadow: 0 0 15px rgba(201, 160, 48, 0.3);
+  margin: 0;
+  letter-spacing: 4px;
+  animation: fadeInDown 0.8s ease-out;
+}
+
+.text {
+  font-family: var(--font-body);
+  font-size: 18px;
+  color: var(--text-primary);
+  line-height: 1.8;
+  max-width: 600px;
+  text-align: center;
+  margin: 0;
+}
+
+.cursor {
+  animation: blink 0.7s infinite;
+  color: var(--gold);
+}
+
+.continue {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-dim);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}

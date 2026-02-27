@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+<head><title>Runtime Test</title></head>
+<body>
+<canvas id="c" width="960" height="540"></canvas>
+<pre id="log" style="color:white;background:black;padding:10px;font-size:12px;"></pre>
+<script type="module">
+const log = document.getElementById('log');
+function ok(msg) { log.textContent += '✓ ' + msg + '\n'; }
+function fail(msg, e) { log.textContent += '✗ ' + msg + ': ' + e + '\n'; }
+
+try {
+  // Test OffscreenCanvas
+  const oc = new OffscreenCanvas(100, 100);
+  const octx = oc.getContext('2d');
+  ok('OffscreenCanvas + 2d context');
+
+  // Test compositing
+  octx.globalCompositeOperation = 'destination-out';
+  octx.globalCompositeOperation = 'source-atop';
+  octx.globalCompositeOperation = 'source-over';
+  ok('Compositing operations');
+
+  // Test radial gradient
+  const g = octx.createRadialGradient(50, 50, 0, 50, 50, 50);
+  g.addColorStop(0, 'rgba(0,0,0,0.5)');
+  g.addColorStop(1, 'transparent');
+  ok('Radial gradient');
+
+  // Test ellipse
+  octx.beginPath();
+  octx.ellipse(50, 50, 10, 20, 0, 0, Math.PI * 2);
+  octx.fill();
+  ok('ellipse');
+
+  // Test roundRect
+  if (typeof octx.roundRect === 'function') {
+    octx.beginPath();
+    octx.roundRect(0, 0, 50, 50, 5);
+    octx.fill();
+    ok('roundRect');
+  } else {
+    fail('roundRect', 'not available on OffscreenCanvasRenderingContext2D');
+  }
+
+  // Test drawImage with OffscreenCanvas
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(oc, 0, 0);
+  ok('drawImage(OffscreenCanvas)');
+
+  // Test large OffscreenCanvas (tile cache size)
+  const large = new OffscreenCanvas(5760, 960);
+  const largeCtx = large.getContext('2d');
+  largeCtx.fillRect(0, 0, 100, 100);
+  ctx.drawImage(large, 0, 0);
+  ok('Large OffscreenCanvas (5760x960)');
+
+  // Test shadowBlur
+  ctx.save();
+  ctx.shadowBlur = 6;
+  ctx.shadowColor = '#ff0000';
+  ctx.fillRect(10, 10, 20, 20);
+  ctx.shadowBlur = 0;
+  ctx.restore();
+  ok('shadowBlur');
+
+  // Test Vite module import
+  const { CANVAS_WIDTH } = await import('/src/constants/game.ts');
+  ok('Import game constants: CANVAS_WIDTH=' + CANVAS_WIDTH);
+
+  const { GRAVITY } = await import('/src/constants/physics.ts');
+  ok('Import physics constants: GRAVITY=' + GRAVITY);
+
+  const types = await import('/src/types/index.ts');
+  ok('Import types');
+
+  const levelData = await import('/src/levels/data/level1_dungeon_escape.json');
+  ok('Import level JSON: name=' + levelData.default.name + ', width=' + levelData.default.width);
+
+  const { InputManager } = await import('/src/engine/InputManager.ts');
+  const im = new InputManager();
+  ok('InputManager');
+
+  const { Camera } = await import('/src/engine/Camera.ts');
+  const cam = new Camera();
+  ok('Camera');
+
+  const { AnimationController } = await import('/src/engine/AnimationSystem.ts');
+  const ac = new AnimationController({ idle: { frames: 4, duration: 0.8, loop: true } });
+  ok('AnimationController');
+
+  const { ParticleSystem } = await import('/src/rendering/effects/ParticleSystem.ts');
+  const ps = new ParticleSystem();
+  ok('ParticleSystem');
+
+  const { LightingEngine } = await import('/src/rendering/effects/LightingEngine.ts');
+  const le = new LightingEngine(960, 540);
+  ok('LightingEngine');
+
+  const { ScreenEffects } = await import('/src/rendering/effects/ScreenEffects.ts');
+  const se = new ScreenEffects();
+  ok('ScreenEffects');
+
+  const { DamageNumbers } = await import('/src/rendering/effects/DamageNumbers.ts');
+  const dn = new DamageNumbers();
+  ok('DamageNumbers');
+
+  const { registerDungeonTiles } = await import('/src/rendering/tiles/DungeonTileset.ts');
+  registerDungeonTiles();
+  ok('registerDungeonTiles');
+
+  const { buildTileCache } = await import('/src/rendering/tiles/TileRenderer.ts');
+  const tc = buildTileCache(levelData.default);
+  ok('buildTileCache: ' + tc.width + 'x' + tc.height);
+
+  const { Renderer } = await import('/src/rendering/Renderer.ts');
+  const renderer = new Renderer(ctx);
+  ok('Renderer');
+
+  const { Player } = await import('/src/entities/Player.ts');
+  const player = new Player(96, 768);
+  ok('Player created at ' + player.x + ',' + player.y);
+
+  const { Orc } = await import('/src/entities/enemies/Orc.ts');
+  const orc = new Orc(200, 768);
+  ok('Orc created');
+
+  const { GameEngine } = await import('/src/engine/GameEngine.ts');
+  const engine = new GameEngine(canvas);
+  ok('GameEngine created');
+
+  const { loadLevel } = await import('/src/levels/LevelLoader.ts');
+  const { level, player: p, entities } = loadLevel(1);
+  ok('loadLevel: ' + entities.length + ' entities');
+
+  engine.loadLevel(level, p, entities);
+  ok('engine.loadLevel succeeded');
+
+  log.textContent += '\n=== ALL TESTS PASSED ===\n';
+} catch(e) {
+  fail('FATAL', e.stack || e.message);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+:root {
+  /* Dark Fantasy Palette */
+  --bg-deep: #0a0a12;
+  --bg-mid: #12121e;
+  --bg-surface: #1a1a2e;
+  --stone: #2a2a3a;
+  --stone-light: #3a3a4e;
+  --gold: #c9a030;
+  --gold-light: #e8c54a;
+  --gold-dim: #8a6d1e;
+  --blood: #8b1a1a;
+  --blood-light: #c43030;
+  --magic: #4a6fa5;
+  --magic-light: #6a9fd5;
+  --poison: #3a6b35;
+  --poison-light: #5a9b55;
+  --text-primary: #e8e0d0;
+  --text-secondary: #a89880;
+  --text-dim: #6a6050;
+  --outline: #1a1a2e;
+  --health-full: #c43030;
+  --health-empty: #2a1a1a;
+
+  /* Fonts */
+  --font-display: 'MedievalSharp', cursive;
+  --font-body: 'Crimson Text', serif;
+
+  /* Transitions */
+  --transition-fast: 150ms ease-out;
+  --transition-normal: 300ms ease-out;
+  --transition-slow: 500ms ease-out;
+
+  /* Z-index layers */
+  --z-canvas: 0;
+  --z-hud: 10;
+  --z-dialogue: 20;
+  --z-menu: 30;
+  --z-overlay: 40;
+}
