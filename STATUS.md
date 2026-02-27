@@ -16,7 +16,6 @@ Quick-reference document for picking up work on any project in this repo.
 | RealmOfShadows (v1) | 40% | Limited | None | Superseded by v2 |
 | RealmOfShadows2 | 65% | Level 1 | **High** | ~70-90 hrs (levels 2-5 + systems) |
 | LLMExplorer | 90% | Needs setup | Medium | ~1 hr (Vite wrapper) |
-| Destroy&Discovery | 0% | No | Undecided | Scope undefined |
 
 ---
 
@@ -161,13 +160,6 @@ npm run dev    # http://localhost:5173
 - [ ] Rename `llm-explorer (1).jsx` to `LLMExplorer.jsx`
 - [ ] Create index.html + main entry point
 - [ ] Optional: convert to TypeScript
-
----
-
-## Destroy&Discovery
-
-**Status:** Empty directory (`.gitkeep` only). No code, no plan.
-**Decision needed:** Define scope and build, or delete the directory.
 
 ---
 

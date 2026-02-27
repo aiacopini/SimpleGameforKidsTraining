@@ -12,7 +12,6 @@ A collection of browser-based games and educational tools built with Canvas 2D a
 | [RealmOfShadows](RealmOfShadows/) | Prince of Persia-inspired action RPG (v1) | Vanilla JS + Canvas | Open HTML in browser |
 | [RealmOfShadows2](RealmOfShadows2/) | Prince of Persia side-scroller (v2, production) | React 18 + TypeScript + Vite | `npm install && npm run dev` |
 | [LLMExplorer](LLMExplorer/) | Interactive LLM inference visualizer | React 18 + Recharts | Requires React tooling |
-| Destroy&Discovery | Planned project | — | Not yet started |
 
 ## Common Patterns
 
