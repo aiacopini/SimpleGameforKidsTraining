@@ -2,7 +2,7 @@ import { GameLoop } from './GameLoop';
 import { InputManager } from './InputManager';
 import { Camera } from './Camera';
 import { Entity } from './Entity';
-import { GameContext, InputState, LevelData } from '../types';
+import { GameContext, InputState, LevelData, EntitySpawn } from '../types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/game';
 import { TILE_SIZE } from '../constants/physics';
 import { Renderer } from '../rendering/Renderer';
@@ -12,6 +12,12 @@ import { ScreenEffects } from '../rendering/effects/ScreenEffects';
 import { DamageNumbers } from '../rendering/effects/DamageNumbers';
 import { CombatSystem } from '../systems/CombatSystem';
 import { TrapSystem } from '../systems/TrapSystem';
+import { DialogueSystem } from '../systems/DialogueSystem';
+import { ClueSystem } from '../systems/ClueSystem';
+import { InventorySystem } from '../systems/InventorySystem';
+import { Orc } from '../entities/enemies/Orc';
+import { OrcShaman } from '../entities/enemies/OrcShaman';
+import { SkeletonGuard } from '../entities/enemies/SkeletonGuard';
 import { useGameStore } from '../stores/gameStore';
 import { usePlayerStore } from '../stores/playerStore';
 
@@ -28,6 +34,9 @@ export class GameEngine {
   damageNumbers: DamageNumbers;
   combatSystem: CombatSystem;
   trapSystem: TrapSystem;
+  dialogueSystem: DialogueSystem;
+  clueSystem: ClueSystem;
+  inventorySystem: InventorySystem;
 
   player: Entity | null = null;
   entities: Entity[] = [];
@@ -52,6 +61,9 @@ export class GameEngine {
     this.damageNumbers = new DamageNumbers();
     this.combatSystem = new CombatSystem();
     this.trapSystem = new TrapSystem();
+    this.dialogueSystem = new DialogueSystem();
+    this.clueSystem = new ClueSystem();
+    this.inventorySystem = new InventorySystem();
 
     this.loop = new GameLoop(
       (dt) => this.update(dt),
@@ -80,6 +92,9 @@ export class GameEngine {
     this.particles.clear();
     this.damageNumbers.clear();
     this.screenEffects.reset();
+    this.dialogueSystem.init(level);
+    this.clueSystem.init(level);
+    this.inventorySystem.init(level);
   }
 
   private createContext(dt: number): GameContext {
@@ -96,6 +111,11 @@ export class GameEngine {
       addDamageNumber: (x, y, amount, color) => this.damageNumbers.add(x, y, amount, color),
       screenShake: (intensity, duration) => this.camera.shake(intensity, duration),
       hitFreeze: (duration) => this.loop.freeze(duration),
+      startDialogue: (treeId) => this.dialogueSystem.startDialogue(treeId),
+      awardClue: (clueId) => usePlayerStore.getState().addClue(clueId),
+      awardItem: (itemId) => usePlayerStore.getState().addItem(itemId),
+      spawnEntities: (spawns) => this.spawnPenaltyEntities(spawns),
+      isDialogueActive: () => this.dialogueSystem.isActive,
     };
   }
 
@@ -112,6 +132,20 @@ export class GameEngine {
     }
 
     const ctx = this.createContext(dt);
+
+    // When dialogue is active, only update animations/effects — block gameplay
+    if (this.dialogueSystem.isActive) {
+      for (const entity of this.entities) {
+        entity.animation.update(dt);
+      }
+      this.camera.follow(this.player.x, this.player.y, this.player.width, this.player.height, this.player.facing, dt);
+      this.camera.updateShake(dt);
+      this.particles.update(dt);
+      this.damageNumbers.update(dt);
+      this.screenEffects.update(dt);
+      this.lighting.update(dt);
+      return;
+    }
 
     // Update player
     this.player.update(dt, ctx);
@@ -135,6 +169,11 @@ export class GameEngine {
     if (this.level) {
       this.trapSystem.update(this.player, this.level, dt, ctx);
     }
+
+    // Mystery systems
+    this.dialogueSystem.update(dt);
+    this.clueSystem.update(dt);
+    this.inventorySystem.update(dt);
 
     // Update i-frames
     for (const entity of this.entities) {
@@ -194,5 +233,25 @@ export class GameEngine {
   resume() {
     this.paused = false;
     useGameStore.getState().setPaused(false);
+  }
+
+  spawnPenaltyEntities(spawns: EntitySpawn[]) {
+    for (const spawn of spawns) {
+      let entity: Entity | null = null;
+      switch (spawn.type) {
+        case 'orc':
+          entity = new Orc(spawn.x, spawn.y);
+          break;
+        case 'orc-shaman':
+          entity = new OrcShaman(spawn.x, spawn.y);
+          break;
+        case 'skeleton-guard':
+          entity = new SkeletonGuard(spawn.x, spawn.y);
+          break;
+      }
+      if (entity) {
+        this.entities.push(entity);
+      }
+    }
   }
 }

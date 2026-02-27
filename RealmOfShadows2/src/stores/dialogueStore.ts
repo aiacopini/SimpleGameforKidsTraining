@@ -1,26 +1,17 @@
 import { create } from 'zustand';
+import { DialogueTree, DialogueNode, DialogueChoice } from '../types';
 
-interface DialogueLine {
-  speaker: string;
-  text: string;
-  portrait?: string;
-}
-
-interface DialogueChoice {
-  text: string;
-  next: number; // index of next line, or -1 to end
-}
+type ChoiceFilter = (choice: DialogueChoice) => boolean;
 
 interface DialogueState {
   active: boolean;
-  lines: DialogueLine[];
-  currentLine: number;
-  choices: DialogueChoice[];
+  tree: DialogueTree | null;
+  currentNode: DialogueNode | null;
+  visibleChoices: DialogueChoice[];
   displayedText: string;
   typewriterDone: boolean;
-  startDialogue: (lines: DialogueLine[], choices?: DialogueChoice[]) => void;
-  advanceLine: () => void;
-  selectChoice: (index: number) => void;
+  startTree: (tree: DialogueTree, filterFn?: ChoiceFilter) => void;
+  goToNode: (nodeId: string, filterFn?: ChoiceFilter) => void;
   setDisplayedText: (text: string) => void;
   setTypewriterDone: (done: boolean) => void;
   endDialogue: () => void;
@@ -28,34 +19,54 @@ interface DialogueState {
 
 export const useDialogueStore = create<DialogueState>((set) => ({
   active: false,
-  lines: [],
-  currentLine: 0,
-  choices: [],
+  tree: null,
+  currentNode: null,
+  visibleChoices: [],
   displayedText: '',
   typewriterDone: false,
-  startDialogue: (lines, choices = []) => set({
-    active: true,
-    lines,
-    currentLine: 0,
-    choices,
+
+  startTree: (tree, filterFn) => {
+    const startNode = tree.nodes[tree.startNodeId];
+    if (!startNode) return;
+    const choices = startNode.choices
+      ? (filterFn ? startNode.choices.filter(filterFn) : startNode.choices)
+      : [];
+    set({
+      active: true,
+      tree,
+      currentNode: startNode,
+      visibleChoices: choices,
+      displayedText: '',
+      typewriterDone: false,
+    });
+  },
+
+  goToNode: (nodeId, filterFn) => set((state) => {
+    if (!state.tree) return {};
+    const node = state.tree.nodes[nodeId];
+    if (!node) {
+      return { active: false, tree: null, currentNode: null, visibleChoices: [], displayedText: '' };
+    }
+    const choices = node.choices
+      ? (filterFn ? node.choices.filter(filterFn) : node.choices)
+      : [];
+    return {
+      currentNode: node,
+      visibleChoices: choices,
+      displayedText: '',
+      typewriterDone: false,
+    };
+  }),
+
+  setDisplayedText: (text) => set({ displayedText: text }),
+  setTypewriterDone: (done) => set({ typewriterDone: done }),
+
+  endDialogue: () => set({
+    active: false,
+    tree: null,
+    currentNode: null,
+    visibleChoices: [],
     displayedText: '',
     typewriterDone: false,
   }),
-  advanceLine: () => set((state) => {
-    const next = state.currentLine + 1;
-    if (next >= state.lines.length) {
-      return { active: false, lines: [], currentLine: 0, displayedText: '' };
-    }
-    return { currentLine: next, displayedText: '', typewriterDone: false };
-  }),
-  selectChoice: (index) => set((state) => {
-    const choice = state.choices[index];
-    if (!choice || choice.next === -1) {
-      return { active: false, lines: [], currentLine: 0, choices: [], displayedText: '' };
-    }
-    return { currentLine: choice.next, choices: [], displayedText: '', typewriterDone: false };
-  }),
-  setDisplayedText: (text) => set({ displayedText: text }),
-  setTypewriterDone: (done) => set({ typewriterDone: done }),
-  endDialogue: () => set({ active: false, lines: [], currentLine: 0, choices: [], displayedText: '' }),
 }));

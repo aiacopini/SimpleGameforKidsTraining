@@ -1,6 +1,6 @@
 # Project Status & Roadmap
 
-> Last updated: 2026-02-27
+> Last updated: 2026-02-28
 
 Quick-reference document for picking up work on any project in this repo.
 
@@ -14,7 +14,7 @@ Quick-reference document for picking up work on any project in this repo.
 | DnDGame | 95% | Yes | Low | ~5 hrs (save/load) |
 | SpaceFun | 90% | Yes | Low | ~3 hrs (audio) |
 | RealmOfShadows (v1) | 40% | Limited | None | Superseded by v2 |
-| RealmOfShadows2 | 65% | Level 1 | **High** | ~70-90 hrs (levels 2-5 + systems) |
+| RealmOfShadows2 | 72% | Level 1 | **High** | ~55-70 hrs (levels 2-5 + polish) |
 | LLMExplorer | 90% | Needs setup | Medium | ~1 hr (Vite wrapper) |
 
 ---
@@ -107,14 +107,36 @@ npm run dev    # http://localhost:5173
 | 4 | Combat (HP, hitboxes, i-frames), 3 enemy types, traps | Done |
 | 5 | UI overlay (HUD, menus, game over, level transition) | Done |
 | 6 | Level 1 complete (9 enemies, traps, parallax, lighting) | Done |
+| 7 | Mystery systems (dialogue, clues, inventory, NPCs) | Done |
+
+### Phase 7 — What Was Built
+
+**3 new engine systems:**
+- `DialogueSystem` — tree-based branching conversations with choice filtering (locked choices require items/clues)
+- `ClueSystem` — mystery definition, clue tracking, theory submission (select 3 clues), penalty spawns on wrong guess
+- `InventorySystem` — item definitions, use effects (heal/key/light)
+
+**NPC entity** (`entities/npcs/NPC.ts`) — neutral entity, no physics, faces player when in range, triggers dialogue on E key
+
+**Procedural NPC renderer** — robed-figure drawing with 4 color palettes (librarian, merchant, guard, mystic), floating "E" interact hint
+
+**3 React UI overlays:**
+- `DialogueBox` — bottom-center panel, typewriter effect (35ms/char), speaker name in gold, choice buttons
+- `ClueBoard` — modal (Tab/C key), select 3 clues to submit theory, correct/wrong feedback
+- `InventoryScreen` — modal (I key), item grid with Use button
+
+**Engine integration:**
+- Dialogue-active guard blocks player/entity/combat/trap updates during conversations
+- `spawnPenaltyEntities()` spawns enemies on wrong theory submission
+- GameContext extended with `startDialogue`, `awardClue`, `awardItem`, `spawnEntities`, `isDialogueActive`
+
+**Test data in Level 1** (temporary, for integration testing):
+- Librarian NPC at x:384 with 5-node branching dialogue tree
+- 5 clues (3 real + 2 red herrings), 2 items (Healing Salve + Rusty Key)
+
+**New types:** `DialogueChoice`, `DialogueNode`, `DialogueTree`, `ClueDef`, `MysteryDef`, `InventoryItemDef`, `NPCSpawn`. LevelData extended with optional mystery fields. `'talk'` added to EntityState.
 
 ### Remaining Phases
-
-**Phase 7 — Mystery Systems** (not started)
-- [ ] DialogueSystem.ts — branching NPC conversations (data-driven JSON trees)
-- [ ] ClueSystem.ts — collect/track clues, found/missing state
-- [ ] ClueBoard.tsx — visual clue-connection board UI
-- [ ] InventoryScreen.tsx
 
 **Phase 8 — Level 2: Forgotten Library** (not started)
 - [ ] level2_forgotten_library.json (140x20, library tileset)
@@ -168,4 +190,4 @@ npm run dev    # http://localhost:5173
 1. **Add audio to any game** — all 4 playable games are silent; even basic SFX dramatically improves feel
 2. **Wrap LLMExplorer in Vite** — 30 min to make it deployable
 3. **Add localStorage save to DnDGame** — most complete game, just needs persistence
-4. **RealmOfShadows2 Phase 7** — dialogue + clue systems unlock the mystery-level gameplay loop
+4. **RealmOfShadows2 Phase 8** — Level 2 (Forgotten Library) is the first mystery level; all systems are ready

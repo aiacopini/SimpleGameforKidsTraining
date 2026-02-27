@@ -6,10 +6,14 @@ interface PlayerState {
   maxHp: number;
   inventory: string[];
   cluesFound: string[];
+  theoriesAttempted: number;
+  mysterySolved: boolean;
   setHp: (hp: number) => void;
   addItem: (item: string) => void;
   removeItem: (item: string) => void;
   addClue: (clue: string) => void;
+  setTheoriesAttempted: (n: number) => void;
+  setMysterySolved: (solved: boolean) => void;
   reset: () => void;
 }
 
@@ -18,6 +22,8 @@ export const usePlayerStore = create<PlayerState>((set) => ({
   maxHp: PLAYER_MAX_HP,
   inventory: [],
   cluesFound: [],
+  theoriesAttempted: 0,
+  mysterySolved: false,
   setHp: (hp) => set({ hp }),
   addItem: (item) => set((state) => ({
     inventory: state.inventory.includes(item) ? state.inventory : [...state.inventory, item],
@@ -28,5 +34,7 @@ export const usePlayerStore = create<PlayerState>((set) => ({
   addClue: (clue) => set((state) => ({
     cluesFound: state.cluesFound.includes(clue) ? state.cluesFound : [...state.cluesFound, clue],
   })),
-  reset: () => set({ hp: PLAYER_MAX_HP, inventory: [], cluesFound: [] }),
+  setTheoriesAttempted: (n) => set({ theoriesAttempted: n }),
+  setMysterySolved: (solved) => set({ mysterySolved: solved }),
+  reset: () => set({ hp: PLAYER_MAX_HP, inventory: [], cluesFound: [], theoriesAttempted: 0, mysterySolved: false }),
 }));

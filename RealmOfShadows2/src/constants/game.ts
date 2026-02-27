@@ -54,3 +54,8 @@ export const COLORS = {
   HP_EMPTY: '#2a1a1a',
   DAMAGE_TEXT: '#ff4444',
 } as const;
+
+// Mystery / NPC
+export const NPC_INTERACT_RADIUS = 60;
+export const TYPEWRITER_MS = 35;
+export const THEORY_REQUIRED_CLUES = 3;

@@ -21,7 +21,8 @@ export type EntityState =
   | 'idle' | 'run' | 'jump' | 'fall' | 'land'
   | 'wall-slide' | 'wall-jump' | 'ledge-grab' | 'ledge-climb'
   | 'attack' | 'attack-air' | 'roll'
-  | 'hurt' | 'die';
+  | 'hurt' | 'die'
+  | 'talk';
 
 export type Facing = 'left' | 'right';
 
@@ -47,6 +48,65 @@ export interface EntitySpawn {
   properties?: Record<string, unknown>;
 }
 
+export interface DialogueChoice {
+  text: string;
+  nextNodeId: string;
+  giveClue?: string;
+  giveItem?: string;
+  requireItem?: string;
+  requireClue?: string;
+}
+
+export interface DialogueNode {
+  id: string;
+  speaker: string;
+  text: string;
+  portrait?: string;
+  choices?: DialogueChoice[];
+  nextNodeId?: string;
+  giveClue?: string;
+  giveItem?: string;
+}
+
+export interface DialogueTree {
+  id: string;
+  startNodeId: string;
+  nodes: Record<string, DialogueNode>;
+}
+
+export interface ClueDef {
+  id: string;
+  name: string;
+  description: string;
+  isRedHerring: boolean;
+}
+
+export interface MysteryDef {
+  clues: ClueDef[];
+  solutionClueIds: string[];
+  solvedText: string;
+  wrongPenaltySpawns: EntitySpawn[];
+}
+
+export interface InventoryItemDef {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  usable: boolean;
+  effect?: 'heal' | 'key' | 'light';
+  effectValue?: number;
+}
+
+export interface NPCSpawn {
+  id: string;
+  x: number;
+  y: number;
+  npcType: string;
+  dialogueTreeId: string;
+  interactRadius?: number;
+}
+
 export interface LevelData {
   name: string;
   width: number;  // in tiles
@@ -65,6 +125,10 @@ export interface LevelData {
   lights: LightDef[];
   backgroundType: string;
   music?: string;
+  npcs?: NPCSpawn[];
+  mystery?: MysteryDef;
+  dialogueTrees?: Record<string, DialogueTree>;
+  items?: InventoryItemDef[];
 }
 
 export interface LightDef {
@@ -99,6 +163,11 @@ export interface GameContext {
   addDamageNumber?: (x: number, y: number, amount: number, color?: string) => void;
   screenShake?: (intensity: number, duration: number) => void;
   hitFreeze?: (duration: number) => void;
+  startDialogue?: (treeId: string) => void;
+  awardClue?: (clueId: string) => void;
+  awardItem?: (itemId: string) => void;
+  spawnEntities?: (spawns: EntitySpawn[]) => void;
+  isDialogueActive?: () => boolean;
 }
 
 export interface InputState {

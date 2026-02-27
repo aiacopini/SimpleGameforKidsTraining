@@ -4,6 +4,7 @@ import { Player } from '../entities/Player';
 import { Orc } from '../entities/enemies/Orc';
 import { OrcShaman } from '../entities/enemies/OrcShaman';
 import { SkeletonGuard } from '../entities/enemies/SkeletonGuard';
+import { NPC } from '../entities/npcs/NPC';
 
 // Import level data
 import level1Data from './data/level1_dungeon_escape.json';
@@ -42,6 +43,20 @@ export function loadLevel(levelNum: number): { level: LevelData; player: Player;
 
     if (entity) {
       entities.push(entity);
+    }
+  }
+
+  // Spawn NPCs
+  if (level.npcs) {
+    for (const npcSpawn of level.npcs) {
+      const npc = new NPC(
+        npcSpawn.x,
+        npcSpawn.y,
+        npcSpawn.npcType,
+        npcSpawn.dialogueTreeId,
+        npcSpawn.interactRadius,
+      );
+      entities.push(npc);
     }
   }
 

@@ -1,0 +1,41 @@
+{
+  "id": "test_librarian",
+  "startNodeId": "greeting",
+  "nodes": {
+    "greeting": {
+      "id": "greeting",
+      "speaker": "Old Librarian",
+      "text": "Ah, an adventurer... I've been expecting someone. This dungeon holds dark secrets. Perhaps you could help uncover the truth?",
+      "choices": [
+        { "text": "What secrets?", "nextNodeId": "secrets" },
+        { "text": "I'm just passing through.", "nextNodeId": "dismiss" },
+        { "text": "What do you know about the guards?", "nextNodeId": "guards", "requireClue": "clue_guard_patrol" }
+      ]
+    },
+    "secrets": {
+      "id": "secrets",
+      "speaker": "Old Librarian",
+      "text": "The warden has been conducting forbidden rituals in the lower chambers. I found this torn page from his journal...",
+      "giveClue": "clue_warden_ritual",
+      "nextNodeId": "after_secret"
+    },
+    "after_secret": {
+      "id": "after_secret",
+      "speaker": "Old Librarian",
+      "text": "Take this healing salve as well. You'll need it down there. Be careful, adventurer.",
+      "giveItem": "healing_salve"
+    },
+    "dismiss": {
+      "id": "dismiss",
+      "speaker": "Old Librarian",
+      "text": "A pity. Well, if you change your mind, you know where to find me. These old bones aren't going anywhere.",
+      "giveClue": "clue_librarian_hint"
+    },
+    "guards": {
+      "id": "guards",
+      "speaker": "Old Librarian",
+      "text": "So you've noticed their patrol patterns too. The night shift guards leave the east corridor unattended for exactly five minutes. That's your window.",
+      "giveClue": "clue_east_corridor"
+    }
+  }
+}

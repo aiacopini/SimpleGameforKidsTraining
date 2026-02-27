@@ -9855,5 +9855,75 @@
       "intensity": 0.7
     }
   ],
-  "backgroundType": "dungeon"
+  "backgroundType": "dungeon",
+  "npcs": [
+    {
+      "id": "test_librarian",
+      "x": 384,
+      "y": 816,
+      "npcType": "librarian",
+      "dialogueTreeId": "test_librarian"
+    }
+  ],
+  "dialogueTrees": {
+    "test_librarian": {
+      "id": "test_librarian",
+      "startNodeId": "greeting",
+      "nodes": {
+        "greeting": {
+          "id": "greeting",
+          "speaker": "Old Librarian",
+          "text": "Ah, an adventurer... I've been expecting someone. This dungeon holds dark secrets. Perhaps you could help uncover the truth?",
+          "choices": [
+            { "text": "What secrets?", "nextNodeId": "secrets" },
+            { "text": "I'm just passing through.", "nextNodeId": "dismiss" },
+            { "text": "What do you know about the guards?", "nextNodeId": "guards", "requireClue": "clue_guard_patrol" }
+          ]
+        },
+        "secrets": {
+          "id": "secrets",
+          "speaker": "Old Librarian",
+          "text": "The warden has been conducting forbidden rituals in the lower chambers. I found this torn page from his journal...",
+          "giveClue": "clue_warden_ritual",
+          "nextNodeId": "after_secret"
+        },
+        "after_secret": {
+          "id": "after_secret",
+          "speaker": "Old Librarian",
+          "text": "Take this healing salve as well. You'll need it down there. Be careful, adventurer.",
+          "giveItem": "healing_salve"
+        },
+        "dismiss": {
+          "id": "dismiss",
+          "speaker": "Old Librarian",
+          "text": "A pity. Well, if you change your mind, you know where to find me. These old bones aren't going anywhere.",
+          "giveClue": "clue_librarian_hint"
+        },
+        "guards": {
+          "id": "guards",
+          "speaker": "Old Librarian",
+          "text": "So you've noticed their patrol patterns too. The night shift guards leave the east corridor unattended. That's your window.",
+          "giveClue": "clue_east_corridor"
+        }
+      }
+    }
+  },
+  "mystery": {
+    "clues": [
+      { "id": "clue_warden_ritual", "name": "Warden's Ritual Page", "description": "A torn journal page describing forbidden rituals in the lower chambers.", "isRedHerring": false },
+      { "id": "clue_librarian_hint", "name": "Librarian's Lament", "description": "The old librarian knows more than he lets on. He seems regretful.", "isRedHerring": true },
+      { "id": "clue_guard_patrol", "name": "Guard Patrol Notes", "description": "The guards follow a predictable pattern, suggesting the warden controls them.", "isRedHerring": false },
+      { "id": "clue_east_corridor", "name": "East Corridor Secret", "description": "A five-minute window when the east corridor is unguarded.", "isRedHerring": false },
+      { "id": "clue_scratched_wall", "name": "Scratched Wall Markings", "description": "Strange symbols scratched into the cell wall by a previous prisoner.", "isRedHerring": true }
+    ],
+    "solutionClueIds": ["clue_warden_ritual", "clue_guard_patrol", "clue_east_corridor"],
+    "solvedText": "The truth is revealed! The warden's rituals, the controlled guards, and the east corridor escape route all connect. You've solved the mystery!",
+    "wrongPenaltySpawns": [
+      { "type": "orc", "x": 480, "y": 816 }
+    ]
+  },
+  "items": [
+    { "id": "healing_salve", "name": "Healing Salve", "description": "A soothing herbal salve that restores 1 heart.", "icon": "potion", "usable": true, "effect": "heal", "effectValue": 1 },
+    { "id": "rusty_key", "name": "Rusty Key", "description": "An old iron key. It might open something.", "icon": "key", "usable": false }
+  ]
 }

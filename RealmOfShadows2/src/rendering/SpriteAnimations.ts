@@ -36,6 +36,12 @@ export const ORC_SHAMAN_ANIMATIONS: AnimationMap = {
   die:     { frames: 4, duration: 0.6, loop: false, locked: true },
 };
 
+/** NPC animation definitions */
+export const NPC_ANIMATIONS: AnimationMap = {
+  idle:  { frames: 4, duration: 1.2, loop: true },
+  talk:  { frames: 4, duration: 0.6, loop: true },
+};
+
 /** Skeleton Guard animation definitions */
 export const SKELETON_GUARD_ANIMATIONS: AnimationMap = {
   idle:    { frames: 4, duration: 1.0, loop: true },

@@ -14,6 +14,8 @@ import { drawPlayer } from './characters/PlayerRenderer';
 import { drawOrc } from './characters/OrcRenderer';
 import { drawOrcShaman } from './characters/OrcShamanRenderer';
 import { drawSkeletonGuard } from './characters/SkeletonGuardRenderer';
+import { drawNPC } from './characters/NPCRenderer';
+import { NPC } from '../entities/npcs/NPC';
 
 // Register all tilesets on module load
 registerDungeonTiles();
@@ -118,6 +120,11 @@ export class Renderer {
       case 'skeleton-guard':
         drawSkeletonGuard(ctx, entity.x, entity.y, state, frame, entity.facing, progress, entity.hp, entity.maxHp);
         break;
+      case 'npc': {
+        const npc = entity as NPC;
+        drawNPC(ctx, entity.x, entity.y, state, frame, entity.facing, progress, npc.npcType, npc.playerInRange);
+        break;
+      }
       default:
         // Fallback: draw colored rectangle
         ctx.fillStyle = '#ff00ff';
